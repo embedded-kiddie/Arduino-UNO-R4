@@ -3,6 +3,8 @@
 
 # allow list
 !.gitignore
+!README.md
+!LICENSE
 
 !/line_trace_lap_timer
 !/background_music
