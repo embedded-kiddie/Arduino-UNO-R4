@@ -59,7 +59,7 @@ void setupMonitor(void) {
  *----------------------------------------------------------------------*/
 #define MAX_SNUM        8     // Number of measurements (CTSUSO0.CTSUSNUM)
 #define TARGET_RATIO    0.375 // Target ratio of Offset Tuning
-#define TARGET_LIMIT    40960 // Theoretical upper limit of dynamic range (100%)
+#define TARGET_LIMIT    40960 // Theoretical upper limit of measurement range (100%)
 #define TARGET_COUNT    15360 // Target value of Offset Tuning (TARGET_LIMIT * TARGET_RATIO)
 #define SAMPLE_COUNT    10    // Number of samples for Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
 
@@ -121,7 +121,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
     for (uint8_t j = CTSU_CLOCK_DIV_6; j <= CTSU_CLOCK_DIV_64; j++) {
       setTouchPinClockDiv(pin, (ctsu_clock_div_t)j);
 
-      // Set ICO reference to get the upper limit of dynamic range
+      // Set ICO reference to get the upper limit of range
       setTouchPinReferenceCurrent(pin, 255);
 
       // Start sampling
@@ -142,15 +142,15 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
         break;
       }
 
-      // Check out of the upper limit of dynamic range
+      // Check out of the upper limit of range
       if (rc < sc) {
-        DEBUG_EXEC(Serial.println(" --> out of dynamic range"));
+        DEBUG_EXEC(Serial.println(" --> SC: out of range"));
         continue;
       }
 
       // Check if the reference counter is enough for target
       if (rc < TARGET_LIMIT) {
-        DEBUG_EXEC(Serial.println(" --> narrow dynamic range"));
+        DEBUG_EXEC(Serial.println(" --> RC: narrow range"));
         continue;
       }
 
@@ -159,9 +159,9 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
         count = sc;
         config.count = i;
         config.div = static_cast<ctsu_clock_div_t>(j);
-        DEBUG_EXEC(Serial.println(" --> found the target"));
+        DEBUG_EXEC(Serial.println(" --> target candidate"));
       } else {
-        DEBUG_EXEC(Serial.println(" --> bigger than target"));
+        DEBUG_EXEC(Serial.println(" --> target overshoot"));
         break;
       }
     }
@@ -173,26 +173,26 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
   // Find the optimal sensor offset adjustment
   count = 0xFFFF;
   for (uint16_t i = 0; i < 1024; i++) {
-      setTouchPinSensorOffset(pin, i);
+    setTouchPinSensorOffset(pin, i);
 
-      resetSampleCount(pin);
-      TouchSensor::start();
-      while (readCount < SAMPLE_COUNT);
-      TouchSensor::stop();
+    resetSampleCount(pin);
+    TouchSensor::start();
+    while (readCount < SAMPLE_COUNT);
+    TouchSensor::stop();
 
-      sc = getSampleCount();
-      rc = ABS(TARGET_COUNT - sc);
+    sc = getSampleCount();
+    rc = ABS(TARGET_COUNT - sc);
 
-      DEBUG_EXEC(Serial.println("offset: " + String(i) + ", sensor count: " + String(sc) + ", diff: " + String(rc)));
+    DEBUG_EXEC(Serial.println("offset: " + String(i) + ", sensor count: " + String(sc) + ", diff: " + String(rc)));
 
-      // Find the sensor offset adjustment closest to the target
-      if (count > rc) {
-        count = rc;
-        config.offset = i;
-      }
-      else if (count < rc) {
-        break;
-      }
+    // Find the sensor offset adjustment closest to the target
+    if (count > rc) {
+      count = rc;
+      config.offset = i;
+    }
+    else {
+      break;
+    }
   }
 
   DEBUG_EXEC(Serial.println("Sensor offset (CTSUSO0.CTSUSO): " + String(config.offset)));
@@ -214,16 +214,16 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 static uint8_t  ma_head = 0;
 static uint16_t ma_vals[NUM_ARDUINO_PINS][DEPTH_MOVING_AVE] = {{0,},};
 
-void initMovingAverate(void) {
+void resetMovingAverate(void) {
   ma_head = 0;
   memset(ma_vals, 0, sizeof(ma_vals));
 }
 
-void loadMovingAverage(void) {
+void fetchMovingAverage(void) {
   extern int num_configured_sensors;
   extern uint16_t results[][2];
 
-  // just load sensor counter to the buffer
+  // just fetch sensor counter to the buffer
   for (uint8_t i = 0; i < num_configured_sensors; i++) {
     ma_vals[i][ma_head] = results[i][0];
   }
@@ -336,8 +336,8 @@ void setup() {
   digitalWrite(LED_BUILTIN, LOW);
 
 #if USE_MOVING_AVE
-  initMovingAverate();
-  attachMeasurementEndCallback(loadMovingAverage);
+  resetMovingAverate();
+  attachMeasurementEndCallback(fetchMovingAverage);
 #endif
 
   TouchSensor::start();
