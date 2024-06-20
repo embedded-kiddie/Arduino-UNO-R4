@@ -11,6 +11,7 @@
 
 /*----------------------------------------------------------------------
  * Peripheral Register Monitor
+ * https://github.com/embedded-kiddie/PeripheralMonitor
  *----------------------------------------------------------------------*/
 #define MONITOR 0
 #if MONITOR
@@ -18,7 +19,7 @@
 #include "PeripheralMonitor.h"
 
 static PeripheralMonitor monitor;
-static bool flag;
+static volatile bool flag;
 
 /*----------------------------------------------------------------------
  * This callback function enables to kick Peripheral Register Monitor
@@ -58,7 +59,7 @@ void setupMonitor(void) {
  * The definitions for Calibration of Capacitive Touch Sensor
  *----------------------------------------------------------------------*/
 #define MAX_SNUM        8     // Number of measurements (CTSUSO0.CTSUSNUM)
-#define TARGET_RATIO    0.375 // Target ratio of Offset Tuning
+#define TARGET_RATIO    0.375 // Target ratio of Offset Tuning (37.5%)
 #define TARGET_LIMIT    40960 // Theoretical upper limit of measurement range (100%)
 #define TARGET_COUNT    15360 // Target value of Offset Tuning (TARGET_LIMIT * TARGET_RATIO)
 #define SAMPLE_COUNT    10    // Number of samples for Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
@@ -70,7 +71,7 @@ void setupMonitor(void) {
 /*----------------------------------------------------------------------
  * Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
  *----------------------------------------------------------------------*/
-static volatile int readCount = 0, readTotal = 0, reference = 0;
+static volatile uint32_t readCount = 0, readTotal = 0, reference = 0;
 static volatile uint8_t target_pin = 0;
 
 void resetSampleCount(uint8_t pin) {
@@ -86,11 +87,11 @@ void sampleCallback(void) {
   readCount++;
 }
 
-int getSampleCount(void) {
+uint16_t getSampleCount(void) {
   return readTotal / readCount;
 }
 
-int getSampleReference(void) {
+uint16_t getSampleReference(void) {
   return reference / readCount;
 }
 
@@ -98,8 +99,8 @@ int getSampleReference(void) {
  * Self-calibration (Offset Tuning)
  *----------------------------------------------------------------------*/
 ctsu_pin_settings_t offsetTuning(uint8_t pin) {
-  int count;
-  int sc, rc; // CTSUSC, CTSURC
+  uint16_t count;
+  uint16_t sc, rc; // CTSUSC, CTSURC
 
   ctsu_pin_settings_t config = {
     .div          = CTSU_CLOCK_DIV_2,
@@ -112,7 +113,9 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
   // Attach sampling callback
   attachMeasurementEndCallback(sampleCallback);
 
-  // Find the optimal frequency and number of measurements
+  /*------------------------------------------------------------
+   * 1. Find the optimal frequency and number of measurements
+   *------------------------------------------------------------*/
   count = 0xFFFF;
   for (uint8_t i = MAX_SNUM; i >= 1; i /= 2) {
     setTouchPinMeasurementCount(pin, i);
@@ -148,7 +151,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
         continue;
       }
 
-      // Check if the reference counter is enough for target
+      // Check if the reference counter is enough for target (TARGET_LIMIT)
       if (rc < TARGET_LIMIT) {
         DEBUG_EXEC(Serial.println(" --> RC: narrow range"));
         continue;
@@ -170,7 +173,9 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
   DEBUG_EXEC(Serial.println("Number of Measurements (CTSUSO0.CTSUSNUM): " + String(config.count)));
   DEBUG_EXEC(Serial.println("Sensor Drive Pulse (CTSUSO1.CTSUSDPA): " + String(config.div)));
 
-  // Find the optimal sensor offset adjustment
+  /*------------------------------------------------------------
+   * 2. Find the optimal sensor offset adjustment
+   *------------------------------------------------------------*/
   count = 0xFFFF;
   for (uint16_t i = 0; i < 1024; i++) {
     setTouchPinSensorOffset(pin, i);
@@ -185,12 +190,11 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 
     DEBUG_EXEC(Serial.println("offset: " + String(i) + ", sensor count: " + String(sc) + ", diff: " + String(rc)));
 
-    // Find the sensor offset adjustment closest to the target
+    // Find the sensor offset adjustment closest to the target (TARGET_COUNT)
     if (count > rc) {
       count = rc;
       config.offset = i;
-    }
-    else {
+    } else {
       break;
     }
   }
@@ -223,7 +227,7 @@ void fetchMovingAverage(void) {
   extern int num_configured_sensors;
   extern uint16_t results[][2];
 
-  // just fetch sensor counter to the buffer
+  // just fetch sensor counter into the buffer of moving average
   for (uint8_t i = 0; i < num_configured_sensors; i++) {
     ma_vals[i][ma_head] = results[i][0];
   }
@@ -252,7 +256,6 @@ void verifyReferenceCount(uint8_t pin) {
   attachMeasurementEndCallback(sampleCallback);
 
   for (uint8_t i = 0; i < 256; i++) {
-      // ICO 特性（ダイナミックレンジ）
       setTouchPinReferenceCurrent(pin, i);
 
       resetSampleCount(pin);
@@ -295,7 +298,7 @@ void setup() {
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
 #endif
 
-  // LED の初期化
+  // Initilize LED
   pinMode(12, OUTPUT);
   pinMode(11, OUTPUT);
   pinMode(10, OUTPUT);
@@ -303,7 +306,7 @@ void setup() {
   pinMode( 5, OUTPUT);
   pinMode( 4, OUTPUT);
 
-  // タッチセンサ部の初期化
+  // Setup souch sensor
   setTouchMode( 9);
   setTouchMode( 8);
   setTouchMode(15);
@@ -350,7 +353,7 @@ void loop() {
   int threshold = TARGET_COUNT + 1000;
 
 #if 0
-  // Just print values ​​for each touchpad
+  // Just print the values ​to display on serial plotter
   Serial.print  (      String(readSensor( 9)));
   Serial.print  ("," + String(readSensor( 8)));
   Serial.print  ("," + String(readSensor(15)));
@@ -359,7 +362,7 @@ void loop() {
   Serial.print  ("," + String(readSensor( 2)));
   Serial.println("," + String(threshold));
 #else
-  // Turn the LED on/off depending on the value of each touchpad
+  // Turn the LED on/off depending on the value of each touch sensor
   digitalWrite(12, readSensor( 9) > threshold ? HIGH : LOW);
   digitalWrite(11, readSensor( 8) > threshold ? HIGH : LOW);
   digitalWrite(10, readSensor(15) > threshold ? HIGH : LOW);
