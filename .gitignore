@@ -9,6 +9,7 @@
 !/line_trace_lap_timer
 !/background_music
 !/serial_speed_test
+!/capacitive_touch
 
 # VSCODE
 */.theia
