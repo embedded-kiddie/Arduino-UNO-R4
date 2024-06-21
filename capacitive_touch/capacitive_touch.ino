@@ -87,7 +87,11 @@ void sampleCallback(void) {
   readCount++;
 }
 
-uint16_t getSampleCount(void) {
+inline uint32_t getNumOfSamples(void) {
+  return readCount;
+}
+
+uint16_t getSensorCount(void) {
   return readTotal / readCount;
 }
 
@@ -130,11 +134,11 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
       // Start sampling
       resetSampleCount(pin);
       TouchSensor::start();
-      while (readCount < SAMPLE_COUNT);
+      while (getNumOfSamples() < SAMPLE_COUNT);
       TouchSensor::stop();
 
       // Read sampled counter
-      sc = getSampleCount();
+      sc = getSensorCount();
       rc = getSampleReference();
 
       DEBUG_EXEC(Serial.print("SNUM = " + String(i) + ", SDPA = " + String(j) + ", RC = " + String(rc) + ", SC = " + String(sc)));
@@ -182,10 +186,10 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 
     resetSampleCount(pin);
     TouchSensor::start();
-    while (readCount < SAMPLE_COUNT);
+    while (getNumOfSamples() < SAMPLE_COUNT);
     TouchSensor::stop();
 
-    sc = getSampleCount();
+    sc = getSensorCount();
     rc = ABS(TARGET_COUNT - sc);
 
     DEBUG_EXEC(Serial.println("offset: " + String(i) + ", sensor count: " + String(sc) + ", diff: " + String(rc)));
@@ -260,7 +264,7 @@ void verifyReferenceCount(uint8_t pin) {
 
       resetSampleCount(pin);
       TouchSensor::start();
-      while (readCount < SAMPLE_COUNT);
+      while (getNumOfSamples() < SAMPLE_COUNT);
       TouchSensor::stop();
 
       Serial.println(String(i) + "," + String(getSampleReference()));
