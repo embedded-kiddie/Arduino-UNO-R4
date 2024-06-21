@@ -124,7 +124,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
     for (uint8_t j = CTSU_CLOCK_DIV_6; j <= CTSU_CLOCK_DIV_64; j++) {
       setTouchPinClockDiv(pin, (ctsu_clock_div_t)j);
 
-      // Set ICO reference to get the upper limit of range
+      // Set ICO reference to get the upper limit of measurement range
       setTouchPinReferenceCurrent(pin, 255);
 
       // Start sampling
@@ -145,7 +145,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
         break;
       }
 
-      // Check out of the upper limit of range
+      // Check out of the upper limit of measurement range
       if (rc < sc) {
         DEBUG_EXEC(Serial.println(" --> SC: out of range"));
         continue;
@@ -306,7 +306,7 @@ void setup() {
   pinMode( 5, OUTPUT);
   pinMode( 4, OUTPUT);
 
-  // Setup souch sensor
+  // Setup touch sensor
   setTouchMode( 9);
   setTouchMode( 8);
   setTouchMode(15);
