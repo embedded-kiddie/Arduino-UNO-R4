@@ -15,7 +15,7 @@
   ![6]
 - LED and USB serial conversion module  
   ![7]
-- UNO R4 + touch sensors  
+- UNO R4 + touch sensors + LED + USB-serial converter for [PeripheralMonitor][9]  
   ![8]
 
 ## Blog posts (Google translate from Japanese to English)
@@ -31,7 +31,7 @@
 [6]: https://embedded-kiddie.github.io/images/2024/06-10/passcon.jpg "Decoupling capacitor"
 [7]: https://embedded-kiddie.github.io/images/2024/06-10/LED-part.jpg "LED and USB serial conversion module"
 [8]: https://embedded-kiddie.github.io/images/2024/06-10/wifi-touch.jpg "UNO R4 + touch sensors"
-
+[9]: https://github.com/embedded-kiddie/PeripheralMonitor "embedded-kiddie/PeripheralMonitor: Arduino UNO R4 Minima/WiFi peripheral register monitor though the external serial I/F (Serial1) at D0(RX)/D1(TX)."
 [10]: https://embedded--kiddie-github-io.translate.goog/2024/06/10/?_x_tr_sl=ja&_x_tr_tl=en&_x_tr_hl=ja&_x_tr_pto=wapp "Google Translation"
 [11]: https://embedded--kiddie-github-io.translate.goog/2024/06/16/?_x_tr_sl=ja&_x_tr_tl=en&_x_tr_hl=ja&_x_tr_pto=wapp "Google Translation"
 [12]: https://embedded--kiddie-github-io.translate.goog/2024/06/22/?_x_tr_sl=ja&_x_tr_tl=en&_x_tr_hl=ja&_x_tr_pto=wapp "Google Translation"
