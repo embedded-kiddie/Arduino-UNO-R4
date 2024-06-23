@@ -18,7 +18,9 @@
 - UNO R4 + touch sensors + LED + USB-serial converter for [PeripheralMonitor][9]  
   ![8]
 
-## Blog posts (Google translate from Japanese to English)
+## Blog posts
+Due to translation from Japanese to English by Google Translate, all images remain in Japanese and diagrams by [mermaid](https://mermaid.js.org/ "Mermaid - Diagramming and charting tool") might be broken.
+
 - [Arduino UNO R4 Capacitive Touch Sensing Unit (CTSU) - Introduction][10]
 - [Arduino UNO R4 Capacitive Touch Sensing Unit (CTSU) - Basics][11]
 - [Arduino UNO R4 Capacitive Touch Sensing Unit (CTSU) - Calibration][12]
