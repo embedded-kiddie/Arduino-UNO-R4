@@ -1,6 +1,8 @@
-# Program to test MINIMA and WIFI serial output speed
+# Serial output speed test for MINIMA and WIFI 
 
-Inspired by [The R4 Serial Problem - UNO R4 Minima - Arduino Forum](https://forum.arduino.cc/t/the-r4-serial-problem/1255584/).
+This sketch is inspired by [The R4 Serial Problem - UNO R4 Minima - Arduino Forum](https://forum.arduino.cc/t/the-r4-serial-problem/1255584/).
+
+## Issue 1: Speed
 
 The original code:
 
@@ -36,3 +38,26 @@ I modified `Serial1` to `Serial` to test MINIMA and WIFI serial output speed, an
 I think the reason why the WiFi communication speed is so slow is because all serial input/output is passed through the ESP32 via a level translator IC.
 
 ![UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8](https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/c963348e-575d-433a-8b19-c84ee077adee "UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8")
+
+## Issue 2: Initialization
+
+WiFi's operator `bool` of `Serial` returns `true` immediately. So the following code does not make sense.
+
+```c++
+  Serial.begin(9600);
+  while (!Serial);
+```
+
+Instead of the code above, use:
+
+```c++
+  Serial.begin(9600);
+
+#ifdef  ARDUINO_UNOR4_WIFI
+  delay(1000); // It requires at least 600 ms to complete Serial initialization.
+#endif
+```
+
+## Issue 3: `Serial.availableForWrite()`
+
+
