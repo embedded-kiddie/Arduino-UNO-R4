@@ -33,7 +33,6 @@ I modified `Serial1` to `Serial` to test MINIMA and WIFI serial output speed, an
 | ------:| -----:|
 | 207    | 69792 |
 
-I think the reason why the WiFi communication speed is so slow is because all serial input/output is passed through the ESP32 via a level conversion IC.
+I think the reason why the WiFi communication speed is so slow is because all serial input/output is passed through the ESP32 via a level translator IC.
 
-![UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8](https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/c963348e-575d-433a-8b19-c84ee077adee "UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8"){: width="1126" height="1544" }
-
+![UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8](https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/c963348e-575d-433a-8b19-c84ee077adee "UNO R4 WiFi Level translator and ESP32-S3-MINI-1-N8")
