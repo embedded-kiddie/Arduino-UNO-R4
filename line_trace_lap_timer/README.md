@@ -1,6 +1,11 @@
 # Lap timer for line trace
 
-## Demo
+## Feature
 
-<blockquote class="twitter-tweet" data-media-max-width="560"><p lang="ja" dir="ltr">Items to enjoy line tracing program development<a href="http://bit.ly/3RBIjaQ">http://bit.ly/3RBIjaQ</a> <a href="https://t.co/Cyq1cVRSXF">pic.twitter.com/Cyq1cVRSXF</a></p>&mdash; Kingsman (@EmbeddedKiddie) <a href="https://twitter.com/EmbeddedKiddie/status/1769345823538831451?ref_src=twsrc%5Etfw">March 17, 2024</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+- Lap Timer  
+  ![Lap Timer](https://embedded-kiddie.github.io/images/2024/03-16/arduino-lap-timer.jpg "Lap Timer")
 
+- Demo video in blog post
+  - [Beauto Rover ARM Line Trace Software - A guide to developing from scratch](https://bit.ly/45BrN0e)
+  - [Items to enjoy line tracing program development](http://bit.ly/3RBIjaQ)
+  - [Playing music while blinking an LED - Arduino UNO R4 timers, interrupts and clocks](https://bit.ly/3VQQAdj)
