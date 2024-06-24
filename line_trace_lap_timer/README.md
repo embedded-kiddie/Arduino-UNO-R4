@@ -5,6 +5,9 @@
 - Lap Timer  
   ![Lap Timer](https://embedded-kiddie.github.io/images/2024/03-16/arduino-lap-timer.jpg "Lap Timer")
 
+- Fritzing
+  ![Lap Timer](https://embedded-kiddie.github.io/images/2024/03-16/line_trace_lap_timer_breadboard.png)
+
 - Demo video in blog post
   - [Beauto Rover ARM Line Trace Software - A guide to developing from scratch](https://bit.ly/45BrN0e)
   - [Items to enjoy line tracing program development](http://bit.ly/3RBIjaQ)
