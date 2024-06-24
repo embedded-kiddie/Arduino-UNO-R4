@@ -1,6 +1,6 @@
 # Lap timer for line trace
 
-It shows the lap time at the end of each lap, playing [TRUTH by T-SQUARE](https://www.youtube.com/watch?v=FZaUPGjjA4c).
+It shows the lap time at the end of each lap, playing the music [`TRUTH by T-SQUARE`](https://www.youtube.com/watch?v=FZaUPGjjA4c) in background.
 
 ## Feature
 
