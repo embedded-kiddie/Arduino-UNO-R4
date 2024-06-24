@@ -1,6 +1,6 @@
 # Playing music while blinking an LED
 
-It make an LED blinking with playing music [`TRUTH by T-SQUARE`](https://www.youtube.com/watch?v=liuNBOXGJxg) in background.
+It makes an LED blinking with playing music [`TRUTH by T-SQUARE`](https://www.youtube.com/watch?v=liuNBOXGJxg) (2016) in background.
 
 ## Dependency
 
