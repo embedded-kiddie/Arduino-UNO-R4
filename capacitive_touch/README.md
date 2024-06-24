@@ -18,6 +18,9 @@
 - UNO R4 + touch sensors + LED + USB-serial converter for [PeripheralMonitor][9]  
   ![8]
 
+## Discussion in Arduino Forum
+- [Let's play with the CTSU!](https://forum.arduino.cc/t/lets-play-with-the-ctsu/1187758/ "Let&#39;s play with the CTSU! - UNO R4 Minima - Arduino Forum")
+
 ## Blog posts
 Due to translation from Japanese to English by Google Translate, all images remain in Japanese and diagrams by [mermaid](https://mermaid.js.org/ "Mermaid - Diagramming and charting tool") might be broken.
 
