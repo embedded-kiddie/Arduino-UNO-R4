@@ -58,6 +58,12 @@ Instead of the code above, use:
 #endif
 ```
 
-## Issue 3: `Serial.availableForWrite()`
+## Issue 3: Tx buffer
+
+`Serial.availableForWrite()` returns always `0`.
+
+cf. Check if `Serial.flush()` is blocking or non-blocking.
+
+
 
 
