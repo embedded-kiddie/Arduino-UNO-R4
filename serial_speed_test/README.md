@@ -1,8 +1,8 @@
 # Serial output speed test for MINIMA and WIFI 
 
-This sketch is inspired by [The R4 Serial Problem - UNO R4 Minima - Arduino Forum](https://forum.arduino.cc/t/the-r4-serial-problem/1255584/).
-
 ## Issue 1: Speed
+
+I'm inspired by [The R4 Serial Problem - UNO R4 Minima - Arduino Forum](https://forum.arduino.cc/t/the-r4-serial-problem/1255584/).
 
 The original code:
 
@@ -48,6 +48,13 @@ WiFi's operator `bool` of `Serial` returns `true` immediately. So the following 
   while (!Serial);
 ```
 
+or
+
+```c++
+  Serial.begin(9600);
+  while (!Serial && millis() < 1000);
+```
+
 Instead of the code above, use:
 
 ```c++
@@ -64,6 +71,8 @@ Instead of the code above, use:
 
 cf. Check if `Serial.flush()` is blocking or non-blocking.
 
+[Serial.availableForWrite()]: https://www.arduino.cc/reference/en/language/functions/communication/serial/availableforwrite/ "Serial.availableForWrite() - Arduino Reference"
 
+[Serial.flush()]: https://www.arduino.cc/reference/en/language/functions/communication/serial/flush/ "Serial.flush() - Arduino Reference"
 
-
+[Serial Communications (SoftwareSerial Class)]: https://www.renesas.com/us/en/products/gadget-renesas/reference/gr-kurumi/library-softwareserial "Serial Communications (SoftwareSerial Class) - Renesas"
