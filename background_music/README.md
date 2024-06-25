@@ -4,10 +4,18 @@ It makes an LED blinking with playing music [`TRUTH by T-SQUARE`](https://www.yo
 
 ## Dependency
 
-- BackgroundMusicR4
-  - https://github.com/embedded-kiddie/BackgroundMusicR4
 - CallbackTimerR4
   - https://github.com/embedded-kiddie/CallbackTimerR4
+- BackgroundMusicR4
+  - https://github.com/embedded-kiddie/BackgroundMusicR4
 
-## Demo video in blog post
+## How to install
+1. Connect one end of the piezoelectric sounder to pin 9 of UNO R4 and the other end to the GND pin.
+2. Download the latest library `.zip` files.
+  - [CallbackTimerR4](https://github.com/embedded-kiddie/CallbackTimerR4/archive/refs/tags/v1.0.1.zip "Release Fixed undefined symbol &#39;LED_TX&#39; and &#39;LED_RX&#39; errors on UNO R4 WiFi. · embedded-kiddie/CallbackTimerR4")
+  - [BackgroundMusicR4](https://github.com/embedded-kiddie/BackgroundMusicR4/archive/refs/tags/v1.0.0.zip "Release First release. · embedded-kiddie/BackgroundMusicR4")
+3. Install downloaded `.zip` files from "**Sketch** --> **Include Library** --> **Add .ZIP Library...**" on Arduino IDE menu.
+4. The verify and upload (compile) the `background_music.ino` to enjoy it!
+
+## Blog post
   - [Playing music while blinking an LED - Arduino UNO R4 timers, interrupts and clocks](https://bit.ly/3VQQAdj)

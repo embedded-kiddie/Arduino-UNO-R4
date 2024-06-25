@@ -41,9 +41,16 @@ void setup() {
 }
 
 void loop() {
-  // blink LED
-  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  delay(1000);                      // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-  delay(1000);                      // wait for a second
+  // put your main code here, to run repeatedly:
+  for (int i = 0; i < 256; i++) {
+    analogWrite(LED_BUILTIN, i);
+    delay(2);
+  }
+
+  for (int i = 255; i >= 0; i--) {
+    analogWrite(LED_BUILTIN, i);
+    delay(2);
+  }
+
+  delay(100);
 }
