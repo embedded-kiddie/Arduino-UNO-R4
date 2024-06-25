@@ -2,6 +2,8 @@
 
 It makes an LED blinking with playing music [`TRUTH by T-SQUARE`](https://www.youtube.com/watch?v=liuNBOXGJxg) (2016) in background.
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/aiFlphyITyA?si=_BpdWNDOyAbnUSgz" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
 ## Dependency
 
 - CallbackTimerR4
