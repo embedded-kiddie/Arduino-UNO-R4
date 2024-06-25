@@ -3,6 +3,7 @@
 It makes an LED blinking with playing music [`TRUTH by T-SQUARE`](https://www.youtube.com/watch?v=liuNBOXGJxg) (2016) in background.
 
 https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/0616f5a3-ce63-4d86-8820-b6b0181a1354
+(Full video: https://youtu.be/aiFlphyITyA)
 
 ## Dependency
 
@@ -21,7 +22,7 @@ https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/0616f5a3-ce63
 
 3. Install downloaded `.zip` files from "**Sketch** --> **Include Library** --> **Add .ZIP Library...**" on Arduino IDE menu.
 
-4. The verify and upload (compile) the `background_music.ino` to enjoy it!
+4. Then verify and upload (compile) the `background_music.ino` ... enjoy it!
 
 ## Blog post
   - [Playing music while blinking an LED - Arduino UNO R4 timers, interrupts and clocks](https://bit.ly/3VQQAdj)
