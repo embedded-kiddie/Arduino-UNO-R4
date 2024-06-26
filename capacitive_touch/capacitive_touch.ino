@@ -3,7 +3,7 @@
 /*----------------------------------------------------------------------
  * Output debug information to Serial Monitor
  *----------------------------------------------------------------------*/
-#if 0
+#if 1
 #define DEBUG_EXEC(x)   {(x);}
 #else
 #define DEBUG_EXEC(x)
@@ -59,10 +59,12 @@ void setupMonitor(void) {
  * The definitions for Calibration of Capacitive Touch Sensor
  *----------------------------------------------------------------------*/
 #define MAX_SNUM        8     // Number of measurements (CTSUSO0.CTSUSNUM)
+#define NUM_SAMPLES     10     // Number of samples for Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
 #define TARGET_RATIO    0.375 // Target ratio of Offset Tuning (37.5%)
 #define TARGET_LIMIT    40960 // Theoretical upper limit of measurement range (100%)
 #define TARGET_COUNT    15360 // Target value of Offset Tuning (TARGET_LIMIT * TARGET_RATIO)
-#define SAMPLE_COUNT    10    // Number of samples for Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
+#define TARGET_ENOUGH   100   // A heuristic search criterion
+#define TARGET_THRESH   (TARGET_COUNT + 1000) // Default touch on threshold
 
 #ifndef ABS
 #define ABS(x)          ((x) >= 0 ? (x) : -(x))
@@ -103,15 +105,15 @@ uint16_t getSampleReference(void) {
  * Self-calibration (Offset Tuning)
  *----------------------------------------------------------------------*/
 ctsu_pin_settings_t offsetTuning(uint8_t pin) {
-  uint16_t count;
-  uint16_t sc, rc; // CTSUSC, CTSURC
+  int sc, rc; // CTSUSC, CTSURC
+  int min_sc, diff_sc;
 
   ctsu_pin_settings_t config = {
     .div          = CTSU_CLOCK_DIV_2,
     .gain         = CTSU_ICO_GAIN_100,
     .ref_current  = 0,
     .offset       = 0,
-    .count        = 1
+    .count        = MAX_SNUM
   };
 
   // Attach sampling callback
@@ -120,8 +122,12 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
   /*------------------------------------------------------------
    * 1. Find the optimal frequency and number of measurements
    *------------------------------------------------------------*/
-  count = 0xFFFF;
+  applyTouchPinSettings(pin, config);
+
+  DEBUG_EXEC(Serial.println("Pin: " + String(pin)));
+
   for (uint8_t i = MAX_SNUM; i >= 1; i /= 2) {
+    min_sc = 0xFFFF;
     setTouchPinMeasurementCount(pin, i);
 
     // Check the sensor drive pulse frequency in ascending order
@@ -129,23 +135,30 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
       setTouchPinClockDiv(pin, (ctsu_clock_div_t)j);
 
       // Set ICO reference to get the upper limit of measurement range
+      setTouchPinSensorOffset(pin, 0);
       setTouchPinReferenceCurrent(pin, 255);
 
       // Start sampling
       resetSampleCount(pin);
       TouchSensor::start();
-      while (getNumOfSamples() < SAMPLE_COUNT);
+      while (getNumOfSamples() < NUM_SAMPLES);
       TouchSensor::stop();
 
       // Read sampled counter
       sc = getSensorCount();
       rc = getSampleReference();
 
-      DEBUG_EXEC(Serial.print("SNUM = " + String(i) + ", SDPA = " + String(j) + ", RC = " + String(rc) + ", SC = " + String(sc)));
+      DEBUG_EXEC(Serial.print("  SNUM = " + String(i) + ", SDPA = " + String(j) + ", RC = " + String(rc) + ", SC = " + String(sc)));
 
       // Check overflow
       if (rc == 0xFFFF || sc == 0xFFFF) {
         DEBUG_EXEC(Serial.println(" --> overflow"));
+        break;
+      }
+
+      // Check if the reference counter is enough for target (TARGET_LIMIT)
+      if (rc > TARGET_LIMIT) {
+        DEBUG_EXEC(Serial.println(" --> RC: beyond limit"));
         break;
       }
 
@@ -155,54 +168,76 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
         continue;
       }
 
-      // Check if the reference counter is enough for target (TARGET_LIMIT)
-      if (rc < TARGET_LIMIT) {
-        DEBUG_EXEC(Serial.println(" --> RC: narrow range"));
+      // Find the smallest sensor counter
+      diff_sc = ABS(sc - TARGET_COUNT);
+      if (diff_sc > min_sc) {
+        DEBUG_EXEC(Serial.println(" --> SC: Inadequate"));
         continue;
       }
 
-      // Find the smallest sensor counter
-      if (count > sc) {
-        count = sc;
-        config.count = i;
-        config.div = static_cast<ctsu_clock_div_t>(j);
-        DEBUG_EXEC(Serial.println(" --> target candidate"));
-      } else {
-        DEBUG_EXEC(Serial.println(" --> target overshoot"));
+      min_sc = diff_sc;
+      config.count = i;
+      config.div = static_cast<ctsu_clock_div_t>(j);
+      DEBUG_EXEC(Serial.println(" --> target candidate (diff SC = " + String(diff_sc) + ")"));
+    }
+
+    // Proceed to next SNUM in case of overflow or no candidate
+    if (rc == 0xFFFF || sc == 0xFFFF || min_sc == 0xFFFF) {
+      continue;
+    }
+
+    /*------------------------------------------------------------
+    * 2. Find the optimal sensor offset adjustment
+    *------------------------------------------------------------*/
+    min_sc = 0xFFFF;
+    config.offset = 0;
+    applyTouchPinSettings(pin, config);
+
+    for (uint16_t j = 0; j < 1024; j++) {
+      setTouchPinSensorOffset(pin, j);
+
+      resetSampleCount(pin);
+      TouchSensor::start();
+      while (getNumOfSamples() < NUM_SAMPLES);
+      TouchSensor::stop();
+
+      sc = getSensorCount();
+      diff_sc = ABS(sc - TARGET_COUNT);
+
+      DEBUG_EXEC(Serial.print("    offset: " + String(j) + ", SC = " + String(sc) + ", diff SC = " + String(diff_sc)));
+
+      if (sc == 0xFFFF) {
+        DEBUG_EXEC(Serial.println(" --> overflow"));
         break;
       }
+
+      // Find the sensor offset adjustment closest to the target (TARGET_COUNT)
+      if (diff_sc > min_sc) {
+        DEBUG_EXEC(Serial.println(" --> overshoot"));
+        break;
+      }
+
+      if (sc > TARGET_THRESH) {
+        DEBUG_EXEC(Serial.println(" --> beyond threshold"));
+        continue;
+      }
+
+      min_sc = diff_sc;
+      config.offset = j;
+      DEBUG_EXEC(Serial.println(" --> found smallest"));
+    }
+
+    // This is a heuristic search criterion.
+    // There's a possibility of finding the minimum SC,
+    // but further searches will reduce the sensitivity.
+    // So stop the search here.
+    if (min_sc < TARGET_ENOUGH) {
+      break;
     }
   }
 
   DEBUG_EXEC(Serial.println("Number of Measurements (CTSUSO0.CTSUSNUM): " + String(config.count)));
   DEBUG_EXEC(Serial.println("Sensor Drive Pulse (CTSUSO1.CTSUSDPA): " + String(config.div)));
-
-  /*------------------------------------------------------------
-   * 2. Find the optimal sensor offset adjustment
-   *------------------------------------------------------------*/
-  count = 0xFFFF;
-  for (uint16_t i = 0; i < 1024; i++) {
-    setTouchPinSensorOffset(pin, i);
-
-    resetSampleCount(pin);
-    TouchSensor::start();
-    while (getNumOfSamples() < SAMPLE_COUNT);
-    TouchSensor::stop();
-
-    sc = getSensorCount();
-    rc = ABS(TARGET_COUNT - sc);
-
-    DEBUG_EXEC(Serial.println("offset: " + String(i) + ", sensor count: " + String(sc) + ", diff: " + String(rc)));
-
-    // Find the sensor offset adjustment closest to the target (TARGET_COUNT)
-    if (count > rc) {
-      count = rc;
-      config.offset = i;
-    } else {
-      break;
-    }
-  }
-
   DEBUG_EXEC(Serial.println("Sensor offset (CTSUSO0.CTSUSO): " + String(config.offset)));
 
   attachMeasurementEndCallback(nullptr);
@@ -264,7 +299,7 @@ void verifyReferenceCount(uint8_t pin) {
 
       resetSampleCount(pin);
       TouchSensor::start();
-      while (getNumOfSamples() < SAMPLE_COUNT);
+      while (getNumOfSamples() < NUM_SAMPLES);
       TouchSensor::stop();
 
       Serial.println(String(i) + "," + String(getSampleReference()));
@@ -320,7 +355,6 @@ void setup() {
 
   //verifyReferenceCount(9);
 
-#if 1
   DEBUG_EXEC(Serial.println("Start calibration..."));
 
   applyTouchPinSettings( 9, offsetTuning( 9));
@@ -331,14 +365,15 @@ void setup() {
   applyTouchPinSettings( 2, offsetTuning( 2));
 
   DEBUG_EXEC(Serial.println("Finished."));
-#endif
 
-  DEBUG_EXEC(showPinSettings( 9));
-  DEBUG_EXEC(showPinSettings( 8));
-  DEBUG_EXEC(showPinSettings(15));
-  DEBUG_EXEC(showPinSettings(16));
-  DEBUG_EXEC(showPinSettings( 3));
-  DEBUG_EXEC(showPinSettings( 2));
+#if 1
+  showPinSettings( 9);
+  showPinSettings( 8);
+  showPinSettings(15);
+  showPinSettings(16);
+  showPinSettings( 3);
+  showPinSettings( 2);
+#endif
 
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -354,9 +389,9 @@ void setup() {
  *
  *----------------------------------------------------------------------*/
 void loop() {
-  int threshold = TARGET_COUNT + 1000;
+  int threshold = TARGET_THRESH;
 
-#if 0
+#if 1
   // Just print the values ​to display on serial plotter
   Serial.print  (      String(readSensor( 9)));
   Serial.print  ("," + String(readSensor( 8)));
@@ -365,7 +400,8 @@ void loop() {
   Serial.print  ("," + String(readSensor( 3)));
   Serial.print  ("," + String(readSensor( 2)));
   Serial.println("," + String(threshold));
-#else
+#endif
+
   // Turn the LED on/off depending on the value of each touch sensor
   digitalWrite(12, readSensor( 9) > threshold ? HIGH : LOW);
   digitalWrite(11, readSensor( 8) > threshold ? HIGH : LOW);
@@ -373,7 +409,6 @@ void loop() {
   digitalWrite( 6, readSensor(16) > threshold ? HIGH : LOW);
   digitalWrite( 5, readSensor( 3) > threshold ? HIGH : LOW);
   digitalWrite( 4, readSensor( 2) > threshold ? HIGH : LOW);
-#endif
 
 #if MONITOR
   if (flag) {
