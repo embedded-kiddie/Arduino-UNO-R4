@@ -3,7 +3,7 @@
 /*----------------------------------------------------------------------
  * Output debug information to Serial Monitor
  *----------------------------------------------------------------------*/
-#if 1
+#if 0
 #define DEBUG_EXEC(x)   {(x);}
 #else
 #define DEBUG_EXEC(x)
@@ -366,14 +366,14 @@ void setup() {
 
   DEBUG_EXEC(Serial.println("Finished."));
 
-#if 1
-  showPinSettings( 9);
-  showPinSettings( 8);
-  showPinSettings(15);
-  showPinSettings(16);
-  showPinSettings( 3);
-  showPinSettings( 2);
-#endif
+  DEBUG_EXEC(
+    showPinSettings( 9);
+    showPinSettings( 8);
+    showPinSettings(15);
+    showPinSettings(16);
+    showPinSettings( 3);
+    showPinSettings( 2);
+  );
 
   digitalWrite(LED_BUILTIN, LOW);
 
@@ -391,16 +391,16 @@ void setup() {
 void loop() {
   int threshold = TARGET_THRESH;
 
-#if 1
-  // Just print the values ​to display on serial plotter
-  Serial.print  (      String(readSensor( 9)));
-  Serial.print  ("," + String(readSensor( 8)));
-  Serial.print  ("," + String(readSensor(15)));
-  Serial.print  ("," + String(readSensor(16)));
-  Serial.print  ("," + String(readSensor( 3)));
-  Serial.print  ("," + String(readSensor( 2)));
-  Serial.println("," + String(threshold));
-#endif
+  DEBUG_EXEC(
+    // Just print the values ​to display on serial plotter
+    Serial.print  (      String(readSensor( 9)));
+    Serial.print  ("," + String(readSensor( 8)));
+    Serial.print  ("," + String(readSensor(15)));
+    Serial.print  ("," + String(readSensor(16)));
+    Serial.print  ("," + String(readSensor( 3)));
+    Serial.print  ("," + String(readSensor( 2)));
+    Serial.println("," + String(threshold));
+  );
 
   // Turn the LED on/off depending on the value of each touch sensor
   digitalWrite(12, readSensor( 9) > threshold ? HIGH : LOW);
