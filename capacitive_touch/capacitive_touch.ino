@@ -63,8 +63,8 @@ void setupMonitor(void) {
 #define TARGET_RATIO    0.375 // Target ratio of Offset Tuning (37.5%)
 #define TARGET_LIMIT    40960 // Theoretical upper limit of measurement range (100%)
 #define TARGET_COUNT    15360 // Target value of Offset Tuning (TARGET_LIMIT * TARGET_RATIO)
-#define TARGET_ENOUGH   100   // A heuristic search criterion
-#define TARGET_THRESH   (TARGET_COUNT + 1000) // Default touch on threshold
+#define TARGET_VALID    100   // A heuristic search criterion
+#define TARGET_THRESH   (TARGET_COUNT + 1000) // Default touch threshold
 
 #ifndef ABS
 #define ABS(x)          ((x) >= 0 ? (x) : -(x))
@@ -158,7 +158,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 
       // Check if the reference counter is enough for target (TARGET_LIMIT)
       if (rc > TARGET_LIMIT) {
-        DEBUG_EXEC(Serial.println(" --> RC: beyond limit"));
+        DEBUG_EXEC(Serial.println(" --> RC: out of limit"));
         break;
       }
 
@@ -171,7 +171,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
       // Find the smallest sensor counter
       diff_sc = ABS(sc - TARGET_COUNT);
       if (diff_sc > min_sc) {
-        DEBUG_EXEC(Serial.println(" --> SC: Inadequate"));
+        DEBUG_EXEC(Serial.println(" --> SC: inadequate"));
         continue;
       }
 
@@ -218,27 +218,27 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
       }
 
       if (sc > TARGET_THRESH) {
-        DEBUG_EXEC(Serial.println(" --> beyond threshold"));
+        DEBUG_EXEC(Serial.println(" --> over threshold"));
         continue;
       }
 
       min_sc = diff_sc;
       config.offset = j;
-      DEBUG_EXEC(Serial.println(" --> found smallest"));
+      DEBUG_EXEC(Serial.println(" --> found candidate"));
     }
 
     // This is a heuristic search criterion.
     // There's a possibility of finding the minimum SC,
     // but further searches will reduce the sensitivity.
     // So stop the search here.
-    if (min_sc < TARGET_ENOUGH) {
+    if (min_sc < TARGET_VALID) {
       break;
     }
   }
 
-  DEBUG_EXEC(Serial.println("Number of Measurements (CTSUSO0.CTSUSNUM): " + String(config.count)));
-  DEBUG_EXEC(Serial.println("Sensor Drive Pulse (CTSUSO1.CTSUSDPA): " + String(config.div)));
-  DEBUG_EXEC(Serial.println("Sensor offset (CTSUSO0.CTSUSO): " + String(config.offset)));
+  DEBUG_EXEC(Serial.println("Number of Measurements (SNUM, CTSUSO0.CTSUSNUM): " + String(config.count)));
+  DEBUG_EXEC(Serial.println("Sensor Drive Pulse (SPDA, CTSUSO1.CTSUSDPA): " + String(config.div)));
+  DEBUG_EXEC(Serial.println("Sensor offset (offset, CTSUSO0.CTSUSO): " + String(config.offset)));
 
   attachMeasurementEndCallback(nullptr);
 
