@@ -3,8 +3,8 @@
 /*----------------------------------------------------------------------
  * Output debug information to Serial Monitor
  *----------------------------------------------------------------------*/
-#if 0
-#define DEBUG_EXEC(x)   {(x);}
+#if 1
+#define DEBUG_EXEC(x)   {x;}
 #else
 #define DEBUG_EXEC(x)
 #endif
@@ -71,7 +71,50 @@ void setupMonitor(void) {
 #endif
 
 /*----------------------------------------------------------------------
- * Sensor Counter (CTSUSC) and Reference Counter (CTSURC)
+ * Moving Average
+ *----------------------------------------------------------------------*/
+#define USE_MOVING_AVE    1
+#if     USE_MOVING_AVE == 0
+#define readSensor  touchRead
+#else
+#define DEPTH_MOVING_AVE  5
+
+static uint8_t  ma_head = 0;
+static uint16_t ma_vals[NUM_ARDUINO_PINS][DEPTH_MOVING_AVE] = {{0,},};
+
+void resetMovingAverate(void) {
+  ma_head = 0;
+  memset(ma_vals, 0, sizeof(ma_vals));
+}
+
+void fetchMovingAverage(void) {
+  extern int num_configured_sensors;
+  extern uint16_t results[][2];
+
+  // just fetch sensor counter into the buffer of moving average
+  for (uint8_t i = 0; i < num_configured_sensors; i++) {
+    ma_vals[i][ma_head] = results[i][0];
+  }
+
+  // update head pointer
+  ma_head = (ma_head + 1) % DEPTH_MOVING_AVE;
+}
+
+uint16_t readSensor(uint8_t pin) {
+  extern int8_t pinToDataIndex[];
+  uint8_t i = pinToDataIndex[pin];
+  uint32_t sum = 0;
+
+  for (uint8_t j = 0; j < DEPTH_MOVING_AVE; j++) {
+    sum += ma_vals[i][j];
+  }
+
+  return sum / DEPTH_MOVING_AVE;
+}
+#endif // USE_MOVING_AVE
+
+/*----------------------------------------------------------------------
+ * Sensor Counter (CTSUSC) and Reference Counter (CTSURC) sampling
  *----------------------------------------------------------------------*/
 static volatile uint32_t readCount = 0, readTotal = 0, reference = 0;
 static volatile uint8_t target_pin = 0;
@@ -246,49 +289,6 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 }
 
 /*----------------------------------------------------------------------
- * Moving Average
- *----------------------------------------------------------------------*/
-#define USE_MOVING_AVE    1
-#if     USE_MOVING_AVE == 0
-#define readSensor  touchRead
-#else
-#define DEPTH_MOVING_AVE  5
-
-static uint8_t  ma_head = 0;
-static uint16_t ma_vals[NUM_ARDUINO_PINS][DEPTH_MOVING_AVE] = {{0,},};
-
-void resetMovingAverate(void) {
-  ma_head = 0;
-  memset(ma_vals, 0, sizeof(ma_vals));
-}
-
-void fetchMovingAverage(void) {
-  extern int num_configured_sensors;
-  extern uint16_t results[][2];
-
-  // just fetch sensor counter into the buffer of moving average
-  for (uint8_t i = 0; i < num_configured_sensors; i++) {
-    ma_vals[i][ma_head] = results[i][0];
-  }
-
-  // update head pointer
-  ma_head = (ma_head + 1) % DEPTH_MOVING_AVE;
-}
-
-uint16_t readSensor(uint8_t pin) {
-  extern int8_t pinToDataIndex[];
-  uint8_t i = pinToDataIndex[pin];
-  uint32_t sum = 0;
-
-  for (uint8_t j = 0; j < DEPTH_MOVING_AVE; j++) {
-    sum += ma_vals[i][j];
-  }
-
-  return sum / DEPTH_MOVING_AVE;
-}
-#endif // USE_MOVING_AVE
-
-/*----------------------------------------------------------------------
  * Verify the characteristics of the ICO reference counter
  *----------------------------------------------------------------------*/
 void verifyReferenceCount(uint8_t pin) {
@@ -332,6 +332,7 @@ void setup() {
 #endif
 
   Serial.begin(115200);
+  while (!Serial);
 
 #ifdef  ARDUINO_UNOR4_WIFI
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
