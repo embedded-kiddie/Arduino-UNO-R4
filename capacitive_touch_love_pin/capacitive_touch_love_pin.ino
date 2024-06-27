@@ -123,7 +123,7 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 
   DEBUG_EXEC(Serial.println("Pin: " + String(pin)));
 
-  for (uint8_t i = MAX_SNUM; i >= 1; i /= 2) {
+  for (uint8_t i = MAX_SNUM; i >= 1; i-- /*i /= 2*/) {
     min_sc = 0xFFFF;
     setTouchPinMeasurementCount(pin, i);
 
