@@ -10,6 +10,7 @@
 !/background_music
 !/serial_speed_test
 !/capacitive_touch
+!/capacitive_touch_love_pin
 
 # VSCODE
 */.theia
