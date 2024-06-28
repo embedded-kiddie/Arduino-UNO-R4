@@ -4,11 +4,11 @@ It's a little bit of fun using [R4_Touch][1] library.
 
 ## Demo video
 
-[![Demonstration of Arduino UNO R4 Capacitive Touch Sensing Unit](https://embedded-kiddie.github.io/images/2024/06-28/CTSU-Servo-Demo.jpg){: width="1534" height="864" }](https://youtu.be/AucEHNyYjE0?feature=shared)
+[![Demonstration of Arduino UNO R4 Capacitive Touch Sensing Unit](https://embedded-kiddie.github.io/images/2024/06-28/CTSU-Servo-Demo.jpg)](https://youtu.be/AucEHNyYjE0?feature=shared)
 
 ## Wiring
 
-![Servo &amp; Touch Electrode](https://embedded-kiddie.github.io/images/2024/06-28/capacitive_touch_servo.jpg){: width="1300" height="920"}
+![Servo &amp; Touch Electrode](https://embedded-kiddie.github.io/images/2024/06-28/capacitive_touch_servo.jpg)
 
 ## Blog post
 - [Arduino UNO R4 Capacitive Touch Sensing Unit (CTSU) - Pressure Sensing][2]
