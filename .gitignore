@@ -11,6 +11,7 @@
 !/serial_speed_test
 !/capacitive_touch
 !/capacitive_touch_love_pin
+!/capacitive_touch_servo
 
 # VSCODE
 */.theia

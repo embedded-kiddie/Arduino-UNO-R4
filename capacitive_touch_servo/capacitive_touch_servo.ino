@@ -3,57 +3,11 @@
 /*----------------------------------------------------------------------
  * Output debug information to Serial Monitor
  *----------------------------------------------------------------------*/
-#if 0
+#if 1
 #define DEBUG_EXEC(x)   {x;}
 #else
 #define DEBUG_EXEC(x)
 #endif
-
-/*----------------------------------------------------------------------
- * Peripheral Register Monitor
- * https://github.com/embedded-kiddie/PeripheralMonitor
- *----------------------------------------------------------------------*/
-#define MONITOR 0
-#if MONITOR
-#include "RTC.h"
-#include "PeripheralMonitor.h"
-
-static PeripheralMonitor monitor;
-static volatile bool flag;
-
-/*----------------------------------------------------------------------
- * This callback function enables to kick Peripheral Register Monitor
- *----------------------------------------------------------------------*/
-void periodicCallback() {
-  flag = true;
-}
-
-/*----------------------------------------------------------------------
- * Initialize Peripheral Register Monitor
- *----------------------------------------------------------------------*/
-void setupMonitor(void) {
-  /*
-   * PERIPHERAL_PORTS, // PORT0 〜 PORT9 (default)
-   * PERIPHERAL_PORT,  // PORT0 〜 PORT9
-   * PERIPHERAL_PFS,   // PmnPFS (P000 〜 P915)
-   * PERIPHERAL_PINS,  // D0 〜 D19 (A0 〜 A5)
-   * PERIPHERAL_AGT,   // AGT0 〜 AGT1
-   * PERIPHERAL_CTSU,  // CTSU
-   */
-  monitor.begin(230400, PERIPHERAL_CTSU); // Baud rate: Mac 230400, Windows 921600
-
-  // Initialize the RTC
-  RTC.begin();
-
-  // RTC.setTime() must be called for RTC.setPeriodicCallback to work, but it doesn't matter
-  // what date and time it's set to
-  RTCTime mytime(1, Month::JUNE, 2024, 0, 0, 0, DayOfWeek::THURSDAY, SaveLight::SAVING_TIME_ACTIVE);
-  RTC.setTime(mytime);
-
-  // Recommend: N4_TIMES_EVERY_SEC, N8_TIMES_EVERY_SEC or N16_TIMES_EVERY_SEC
-  RTC.setPeriodicCallback(periodicCallback, Period::N8_TIMES_EVERY_SEC);
-}
-#endif // MONITOR
 
 /*----------------------------------------------------------------------
  * The definitions for Calibration of Capacitive Touch Sensor
@@ -289,26 +243,6 @@ ctsu_pin_settings_t offsetTuning(uint8_t pin) {
 }
 
 /*----------------------------------------------------------------------
- * Verify the characteristics of the ICO reference counter
- *----------------------------------------------------------------------*/
-void verifyReferenceCount(uint8_t pin) {
-  attachMeasurementEndCallback(sampleCallback);
-
-  for (uint8_t i = 0; i < 256; i++) {
-      setTouchPinReferenceCurrent(pin, i);
-
-      resetSampleCount(pin);
-      TouchSensor::start();
-      while (getNumOfSamples() < NUM_SAMPLES);
-      TouchSensor::stop();
-
-      Serial.println(String(i) + "," + String(getSampleReference()));
-  }
-
-  attachMeasurementEndCallback(nullptr);
-}
-
-/*----------------------------------------------------------------------
  *
  *----------------------------------------------------------------------*/
 void showPinSettings(uint8_t pin) {
@@ -322,14 +256,17 @@ void showPinSettings(uint8_t pin) {
 }
 
 /*----------------------------------------------------------------------
+ * https://www.arduino.cc/en/Tutorial/LibraryExamples/Sweep
+ *----------------------------------------------------------------------*/
+#include <Servo.h>
+
+static Servo myservo;  // create servo object to control a servo
+
+/*----------------------------------------------------------------------
  *
  *----------------------------------------------------------------------*/
 void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
-
-#if MONITOR
-  setupMonitor();
-#endif
 
   Serial.begin(115200);
   while (!Serial);
@@ -338,42 +275,20 @@ void setup() {
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
 #endif
 
-  // Initilize LED
-  pinMode(12, OUTPUT);
-  pinMode(11, OUTPUT);
-  pinMode(10, OUTPUT);
-  pinMode( 6, OUTPUT);
-  pinMode( 5, OUTPUT);
-  pinMode( 4, OUTPUT);
+  // Attaches the servo on pin 11 to the servo object
+  myservo.attach(11);
 
   // Setup touch sensor
   setTouchMode( 9);
-  setTouchMode( 8);
-  setTouchMode(15);
-  setTouchMode(16);
-  setTouchMode( 3);
-  setTouchMode( 2);
-
-  //verifyReferenceCount(9);
 
   DEBUG_EXEC(Serial.println("Start calibration..."));
 
   applyTouchPinSettings( 9, offsetTuning( 9));
-  applyTouchPinSettings( 8, offsetTuning( 8));
-  applyTouchPinSettings(15, offsetTuning(15));
-  applyTouchPinSettings(16, offsetTuning(16));
-  applyTouchPinSettings( 3, offsetTuning( 3));
-  applyTouchPinSettings( 2, offsetTuning( 2));
 
   DEBUG_EXEC(Serial.println("Finished."));
 
   DEBUG_EXEC(
     showPinSettings( 9);
-    showPinSettings( 8);
-    showPinSettings(15);
-    showPinSettings(16);
-    showPinSettings( 3);
-    showPinSettings( 2);
   );
 
   digitalWrite(LED_BUILTIN, LOW);
@@ -390,34 +305,18 @@ void setup() {
  *
  *----------------------------------------------------------------------*/
 void loop() {
-  int threshold = TARGET_THRESH;
+  long threshold = TARGET_THRESH;
 
   DEBUG_EXEC(
     // Just print the values ​to display on serial plotter
     Serial.print  (      String(readSensor( 9)));
-    Serial.print  ("," + String(readSensor( 8)));
-    Serial.print  ("," + String(readSensor(15)));
-    Serial.print  ("," + String(readSensor(16)));
-    Serial.print  ("," + String(readSensor( 3)));
-    Serial.print  ("," + String(readSensor( 2)));
     Serial.println("," + String(threshold));
   );
 
-  // Turn the LED on/off depending on the value of each touch sensor
-  digitalWrite(12, readSensor( 9) > threshold ? HIGH : LOW);
-  digitalWrite(11, readSensor( 8) > threshold ? HIGH : LOW);
-  digitalWrite(10, readSensor(15) > threshold ? HIGH : LOW);
-  digitalWrite( 6, readSensor(16) > threshold ? HIGH : LOW);
-  digitalWrite( 5, readSensor( 3) > threshold ? HIGH : LOW);
-  digitalWrite( 4, readSensor( 2) > threshold ? HIGH : LOW);
+  long x = readSensor( 9);
+  long y = map(x, threshold, 21000, 0, 180);
 
-#if MONITOR
-  if (flag) {
-    flag = false;
-    monitor.scan_command();
-    monitor.show_register();
-  }
-#endif
+  myservo.write(y);
 
   delay(100);
 }
