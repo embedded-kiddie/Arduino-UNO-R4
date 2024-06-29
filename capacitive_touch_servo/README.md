@@ -8,7 +8,7 @@ It's a little bit of fun using [R4_Touch][1] library.
 
 ## Wiring
 
-![Servo &amp; Touch Electrode](https://embedded-kiddie.github.io/images/2024/06-28/capacitive_touch_servo.jpg)
+![Servo &amp; Touch Electrode](https://github.com/embedded-kiddie/Arduino-UNO-R4/assets/159898757/38b8d4d7-2c57-4294-97ee-4b3a120b9743)
 
 ## Blog post
 - [Arduino UNO R4 Capacitive Touch Sensing Unit (CTSU) - Pressure Sensing][2]
