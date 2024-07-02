@@ -33,7 +33,7 @@ I modified `Serial1` to `Serial` to test MINIMA and WIFI serial output speed, an
 
 | Minima | WiFi  |
 | ------:| -----:|
-| 207    | 69792 |
+| 207    | 69793 |
 
 I think the reason why the WiFi communication speed is so slow is because all serial input/output is passed through the ESP32 via a level translator IC.
 
@@ -65,9 +65,13 @@ Instead of the code above, use:
 #endif
 ```
 
-## Issue 3: Tx buffer
+## Issue 3: Availability
 
-`Serial.availableForWrite()` returns always `0`.
+- `Serial.available()`  
+  Both Minima and WiFi always return `0`.
+
+- `Serial.availableForWrite()`  
+  Minima returns `256` but WiFi returns `0`
 
 cf. Check if `Serial.flush()` is blocking or non-blocking.
 
@@ -76,3 +80,8 @@ cf. Check if `Serial.flush()` is blocking or non-blocking.
 [Serial.flush()]: https://www.arduino.cc/reference/en/language/functions/communication/serial/flush/ "Serial.flush() - Arduino Reference"
 
 [Serial Communications (SoftwareSerial Class)]: https://www.renesas.com/us/en/products/gadget-renesas/reference/gr-kurumi/library-softwareserial "Serial Communications (SoftwareSerial Class) - Renesas"
+
+## Related issues
+- [UNOWIFOR4 - Sketch that uses HID - Some Serial.print(...) don't output. #135](https://github.com/arduino/ArduinoCore-renesas/issues/135 "UNOWIFOR4 - Sketch that uses HID - Some Serial.print(...) don&#39;t output. · Issue #135 · arduino/ArduinoCore-renesas")
+- [USB Serial - differences between WIFI and MINIMA](https://forum.arduino.cc/t/usb-serial-differences-between-wifi-and-minima/1154648 "USB Serial - differences between WIFI and MINIMA - UNO R4 WiFi - Arduino Forum")
+- [While (!Serial) {}; Not Sufficient On Upload or USB Plugin](https://forum.arduino.cc/t/while-serial-not-sufficient-on-upload-or-usb-plugin/1168429 "While (!Serial) {}; Not Sufficient On Upload or USB Plugin - UNO R4 WiFi - Arduino Forum")
