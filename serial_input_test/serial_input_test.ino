@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdio.h>
 
 void setup() {
   // put your setup code here, to run once:
@@ -10,13 +11,14 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 #if 0
+  // Serial.readString
   if (Serial.available()) {
     String s = Serial.readString();
     Serial.print(s);
   }
 #else
+  // Serial.readBytes
   if (Serial.available()) {
     char s[256];
     memset(s, -1, sizeof(s)); // fill 0xff
@@ -30,11 +32,12 @@ void loop() {
         Serial.print(c);
       }
       else {
-        Serial.print((int)c);
+        Serial.print("0x" + String(c, HEX));
       }
       Serial.println();
     }
-    Serial.println("n+1 --> " + String((int)s[len+1]));
+    Serial.println((int)s[len+1]);
+    sscanf(s, "%d", &len);
   }
 #endif
 }
