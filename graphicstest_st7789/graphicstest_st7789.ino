@@ -69,11 +69,14 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 float p = 3.1415926;
 
 void setup(void) {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  while (!Serial);
+  delay(1000);
   Serial.print(F("Hello! ST77xx TFT Test"));
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
-  tft.init(240, 240);           // Init ST7789 240x240
+  tft.init(240, 240, SPI_MODE2);  // Init ST7789 240x240
+  tft.setRotation(2);
 
   // OR use this initializer (uncomment) if using a 1.69" 280x240 TFT:
   //tft.init(240, 280);           // Init ST7789 280x240
@@ -103,8 +106,16 @@ void setup(void) {
   Serial.println(time, DEC);
   delay(500);
 
+  Serial.println("done");
+}
+
+void loop() {
+
   // large block of text
   tft.fillScreen(ST77XX_BLACK);
+  tft.setTextWrap(true);
+  tft.setTextSize(0);
+  tft.setCursor(0, 0);
   testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
   delay(1000);
 
@@ -144,14 +155,9 @@ void setup(void) {
   mediabuttons();
   delay(500);
 
-  Serial.println("done");
-  delay(1000);
-}
-
-void loop() {
-  tft.invertDisplay(true);
-  delay(500);
   tft.invertDisplay(false);
+  delay(500);
+  tft.invertDisplay(true);
   delay(500);
 }
 
@@ -304,9 +310,9 @@ void tftPrintTest() {
   tft.setCursor(0, 0);
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextColor(ST77XX_WHITE);
-  tft.setTextSize(0);
+  tft.setTextSize(2/*0*/);
   tft.println("Hello World!");
-  tft.setTextSize(1);
+  //tft.setTextSize(1);
   tft.setTextColor(ST77XX_GREEN);
   tft.print(p, 6);
   tft.println(" Want pi?");
