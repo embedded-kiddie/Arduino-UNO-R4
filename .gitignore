@@ -15,6 +15,7 @@
 !/capacitive_touch_love_pin
 !/capacitive_touch_servo
 !/graphicstest_st7789
+!/non_preemptive_multitasking
 
 # VSCODE
 */.theia
