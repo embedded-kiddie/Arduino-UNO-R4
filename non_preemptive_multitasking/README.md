@@ -2,7 +2,7 @@
 
 This program checks the effect on the periodicity of each task depending on the location where the base time is measured by millis().
 
-## Code similar to "Blink without delay" that launches three tasks
+## Sketch similar to "Blink without delay" that launches three tasks
 
 ```c++
 #define INTERVAL1 110 // [msec]
@@ -48,7 +48,7 @@ void loop() {
 
 ![Periodicity when each task takes milliseconds to process](image1.png)
 
-## Revised code
+## Revised sketch
 
 ```c++
 #define INTERVAL1 110 // [msec]
