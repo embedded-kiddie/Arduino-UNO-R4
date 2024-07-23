@@ -6,16 +6,20 @@
 !README.md
 !LICENSE
 
-!/line_trace_lap_timer
-!/blink_without_delay
+
+!/Flash_Jpg_GFX
 !/background_music
-!/serial_speed_test
-!/serial_input_test
+!/blink_without_delay
+!/breakout
 !/capacitive_touch
 !/capacitive_touch_love_pin
 !/capacitive_touch_servo
 !/graphicstest_st7789
+!/line_trace_lap_timer
 !/non_preemptive_multitasking
+!/serial_input_test
+!/serial_speed_test
+
 
 # VSCODE
 */.theia
