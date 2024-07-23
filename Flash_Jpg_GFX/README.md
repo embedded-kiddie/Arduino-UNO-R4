@@ -11,6 +11,17 @@ This sketch renders jpeg images on Flash memory onto the LCD.
 
 ![Wiring](LCD240x240.png "DiyStudio 1.3”color IPS LCD 240x240 with ST7789VW")
 
+### Pin Assignments
+
+SPI pin definition for Arduino UNO R3 and R4
+
+  | ST7798 | PIN  |  R3  |   R4   |     Description      |
+  |--------|------|------|--------|----------------------|
+  | SCL    |  D13 | SCK  | RSPCKA | Serial clock         |
+  | SDA    | ~D11 | COPI | COPIA  | Serial data input    |
+  | RES    | ~D9  | PB1  | P303   | Reset signal         |
+  | DC     |  D8  | PB0  | P304   | Display data/command |
+
 ## How to store jpeg data into flash memory
 
 1. Install the dependencies into the Arduino IDE library.
@@ -43,5 +54,3 @@ void loop() {
   delay(3000);
 }
 ```
-
-
