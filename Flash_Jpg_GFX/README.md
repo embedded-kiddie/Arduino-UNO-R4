@@ -1,6 +1,11 @@
 # Jpeg images in Flash memory
 
-This sketch shows jpeg images on Flash memory using [Bodmer/TJpg_Decoder](https://github.com/Bodmer/TJpg_Decoder "Bodmer/TJpg_Decoder: Jpeg decoder library based on Tiny JPEG Decompressor")
+This sketch renders jpeg images on Flash memory onto the LCD.
+
+## Dependencies
+- [TJpg_Decoder](https://github.com/Bodmer/TJpg_Decoder "Bodmer/TJpg_Decoder: Jpeg decoder library based on Tiny JPEG Decompressor")
+- [adafruit/Adafruit-GFX-Library](https://github.com/adafruit/Adafruit-GFX-Library "adafruit/Adafruit-GFX-Library: Adafruit GFX graphics core Arduino library, this is the &#39;core&#39; class that all our other graphics libraries derive from")
+- [Adafruit ST7735 and ST7789 Library](https://www.arduino.cc/reference/en/libraries/adafruit-st7735-and-st7789-library/ "Adafruit ST7735 and ST7789 Library - Arduino Reference")
 
 ## Wiring diagram
 
@@ -8,9 +13,9 @@ This sketch shows jpeg images on Flash memory using [Bodmer/TJpg_Decoder](https:
 
 ## How to store jpeg data into flash memory
 
-1. Install [the latest version of TJpg_Decoder](https://github.com/Bodmer/TJpg_Decoder/releases "Releases · Bodmer/TJpg_Decoder") in the Arduino IDE library.
+1. Install the dependencies into the Arduino IDE library.
 
-2. Prepare a JPEG image that matche the resolution of your LCD display.
+2. Prepare a JPEG image that matche the resolution of your LCD.
 
 3. Visit [File to hex converter](http://tomeko.net/online_tools/file_to_hex.php?lang=en "File to hex converter") to convert jpeg image into hexadecimal text data.
 
