@@ -28,7 +28,10 @@ SPI pin definition for Arduino UNO R3 and R4
 
 2. Prepare a JPEG image that matche the resolution of your LCD.
 
-3. Visit [File to hex converter](http://tomeko.net/online_tools/file_to_hex.php?lang=en "File to hex converter") to convert jpeg image into hexadecimal text data.
+3. Visit the following sites to convert jpeg image into hexadecimal text data.
+
+  - [File to hex converter](http://tomeko.net/online_tools/file_to_hex.php?lang=en "File to hex converter")
+  - [image2cpp](https://javl.github.io/image2cpp/ "image2cpp")
 
 4. Create a new header file and paste hexadecimal text data as follows:
 

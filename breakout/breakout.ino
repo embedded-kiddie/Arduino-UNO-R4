@@ -4,9 +4,6 @@
 
 #define DEMO_MODE 1
 
-#define PIN_RACKET  A5  // Potentiometer or Joystick
-#define PIN_SOUND   7   // Buzzer
-
 /* SPI pin definition for Arduino UNO R3 and R4
   | ST7798 | PIN  |  R3  |   R4   |     Description      |
   |--------|------|------|--------|----------------------|
@@ -24,16 +21,23 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
+#define PIN_RACKET  A5  // Potentiometer or Joystick
+#define PIN_SOUND   7   // Buzzer
+
 // Pseudo screen scaling
 #define SCREEN_SCALE  2 // 2 (60 x 60) or 3 (30 x 30)
 #define SCREEN_WIDTH  (DEVICE_WIDTH  >> SCREEN_SCALE)
 #define SCREEN_HEIGHT (DEVICE_HEIGHT >> SCREEN_SCALE)
 #define SCREEN_DEV(v) ((int)(v) << SCREEN_SCALE)  // Screen to Device
 
-// Wall (coodinate on the screen)
-#define WALL_TOP      0
-#define WALL_LEFT     0
-#define WALL_RIGHT    (SCREEN_WIDTH - 1)
+// Block (coodinate on the screen)
+#define BLOCK_ROWS    5
+#define BLOCK_COLS    10
+#define BLOCK_WIDTH   (SCREEN_WIDTH / BLOCK_COLS)
+#define BLOCK_HEIGHT  (8 >> SCREEN_SCALE)
+#define BLOCK_TOP     (6 -  SCREEN_SCALE + WALL_TOP)
+#define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
+#define N_BLOCKS      (BLOCK_ROWS * SCREEN_WIDTH / BLOCK_WIDTH)
 
 // Ball
 #define BALL_SIZE     8 // size on the device
@@ -51,14 +55,10 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define PADDLE_TOP    (SCREEN_HEIGHT - PADDLE_HEIGHT)
 #define PADDLE_CYCLE  16
 
-// Block (coodinate on the screen)
-#define BLOCK_ROWS    5
-#define BLOCK_COLS    10
-#define BLOCK_WIDTH   (SCREEN_WIDTH / BLOCK_COLS)
-#define BLOCK_HEIGHT  (8 >> SCREEN_SCALE)
-#define BLOCK_TOP     (6 -  SCREEN_SCALE + WALL_TOP)
-#define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
-#define N_BLOCKS      (BLOCK_ROWS * SCREEN_WIDTH / BLOCK_WIDTH)
+// Wall (coodinate on the screen)
+#define WALL_TOP      0
+#define WALL_LEFT     0
+#define WALL_RIGHT    (SCREEN_WIDTH - 1)
 
 // Font size for setTextSize(2)
 #define FONT_SIZE_X   12
@@ -70,13 +70,14 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 // Colors by 16-bit (R5-G6-B5)
 #define BLACK     ST77XX_BLACK
-#define BLUE      ST77XX_BLUE
+#define WHITE     ST77XX_WHITE
 #define RED       ST77XX_RED
 #define GREEN     ST77XX_GREEN
+#define BLUE      ST77XX_BLUE
 #define CYAN      ST77XX_CYAN
 #define MAGENTA   ST77XX_MAGENTA
 #define YELLOW    ST77XX_YELLOW
-#define WHITE     ST77XX_WHITE
+#define ORANGE    ST77XX_ORANGE
 
 // Frequency of note for tone()
 #define NOTE_C3   131
@@ -120,13 +121,13 @@ typedef enum {
 } Status_t;
 
 typedef struct {
-  uint16_t  level;
+  uint8_t   level;
+  uint8_t   balls;
   uint16_t  score;
-  uint16_t  balls;
-  uint16_t  ball_cycle;
   uint16_t  block_top;
   uint16_t  block_end;
-  uint16_t  paddle_width;
+  uint8_t   ball_cycle;
+  uint8_t   paddle_width;
 } Game_t;
 
 typedef struct {
@@ -154,7 +155,7 @@ void GameInit(Game_t &game) {
 void GameShow(int refresh = 0) {
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
-  tft.setCursor(5, 0);
+  tft.setCursor(4, 0);
   tft.print("Lv:");
 
   // Level (3 digits)
@@ -226,13 +227,13 @@ int16_t BlocksCount() {
 }
 
 void BlocksDrawAll() {
-  static const uint16_t colors[BLOCK_ROWS] PROGMEM = {CYAN, MAGENTA, YELLOW, RED, GREEN};
+  static const uint16_t colors[] PROGMEM = {CYAN, MAGENTA, YELLOW, RED, GREEN, ORANGE};
 
   int16_t x, y;
   int16_t i = 0;
   int16_t c = 0;
 
-  for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c++) {
+  for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c = (c + 1) % BLOCK_ROWS) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
       if (blocks[i++]) {
         tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), pgm_read_word(&colors[c]));
