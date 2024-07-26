@@ -61,8 +61,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define WALL_RIGHT    (SCREEN_WIDTH - 1)
 
 // Font size for setTextSize(2)
-#define FONT_SIZE_X   12 // [px] (size on the device)
-#define FONT_SIZE_Y   15 // [px] (size on the device)
+#define FONT_WIDTH   12 // [px] (size on the device)
+#define FONT_HEIGHT  16 // [px] (size on the device)
 
 // Game score
 #define REFRESH_SCORE 2
@@ -160,7 +160,7 @@ void GameShow(int refresh = 0) {
 
   // Level (3 digits)
   if (refresh == REFRESH_ALL) {
-    tft.fillRect(40, 0, FONT_SIZE_X * 3, FONT_SIZE_Y, BLACK);
+    tft.fillRect(40, 0, FONT_WIDTH * 3, FONT_HEIGHT, BLACK);
   }
   if (refresh != REFRESH_SCORE) {
     tft.setCursor(40, 0);
@@ -169,7 +169,7 @@ void GameShow(int refresh = 0) {
 
   // Score (5 digits)
   if (refresh & REFRESH_SCORE) {
-    tft.fillRect(96, 0, FONT_SIZE_X * 5, FONT_SIZE_Y, BLACK);
+    tft.fillRect(96, 0, FONT_WIDTH * 5, FONT_HEIGHT, BLACK);
   }
   char buf[8];
   sprintf(buf, "%05d", game.score);
@@ -348,7 +348,7 @@ void MoveBall(void) {
   } while (nx > 0 || ny > 0);
 
   // Redraw game info when ball is inside its area
-  if (ball.y <= (FONT_SIZE_Y >> SCREEN_SCALE) + (BALL_SIZE >> SCREEN_SCALE) + 1) {
+  if (ball.y <= (FONT_HEIGHT >> SCREEN_SCALE) + (BALL_SIZE >> SCREEN_SCALE)) {
     GameShow();
   }
 }
