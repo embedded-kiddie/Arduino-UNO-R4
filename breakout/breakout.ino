@@ -40,7 +40,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define N_BLOCKS      (BLOCK_ROWS * SCREEN_WIDTH / BLOCK_WIDTH)
 
 // Ball
-#define BALL_SIZE     8 // size on the device
+#define BALL_SIZE     8 // [px] (size on the device)
 #define BALL_MOVE_X   (4 - SCREEN_SCALE) // coodinate on the screen
 #define BALL_MOVE_Y   (4 - SCREEN_SCALE) // coodinate on the screen
 #if DEMO_MODE == 1
@@ -61,8 +61,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define WALL_RIGHT    (SCREEN_WIDTH - 1)
 
 // Font size for setTextSize(2)
-#define FONT_SIZE_X   12
-#define FONT_SIZE_Y   15
+#define FONT_SIZE_X   12 // [px] (size on the device)
+#define FONT_SIZE_Y   15 // [px] (size on the device)
 
 // Game score
 #define REFRESH_SCORE 2
@@ -219,8 +219,9 @@ int16_t BlocksCount() {
   int16_t n = 0;
   
   for (int16_t i = 0; i < N_BLOCKS; i++) {
-    if (blocks[i])
+    if (blocks[i]) {
       n++;
+    }
   }
 
   return n;
@@ -341,14 +342,15 @@ void MoveBall(void) {
       ball.dy = -ball.dy;
       dy = -dy;
     }
-
-    if (ball.y <= BLOCK_TOP + 1) {
-      GameShow();
-    }
   
     BlocksCheckHit();
     DrawBall(ball, tft, YELLOW);
   } while (nx > 0 || ny > 0);
+
+  // Redraw game info when ball is inside its area
+  if (ball.y <= (FONT_SIZE_Y >> SCREEN_SCALE) + (BALL_SIZE >> SCREEN_SCALE) + 1) {
+    GameShow();
+  }
 }
 
 void MovePaddle(void) {
@@ -404,7 +406,7 @@ void UpdateStatus(void) {
     case CLEAR:
       game.level++;
       game.ball_cycle = MAX(game.ball_cycle - 1, (DEMO_MODE ? BALL_CYCLE : BALL_CYCLE / 2));
-      game.block_top  = MIN(game.block_top  + 1, BLOCK_TOP + 10);
+      game.block_top  = MIN(game.block_top  + 1, (BLOCK_TOP + 10));
       game.block_end  = BLOCK_END(game.block_top);
       DrawBall(ball, tft, BLACK);
       status = START;
