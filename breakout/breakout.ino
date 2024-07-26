@@ -26,43 +26,44 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 // Pseudo screen scaling
 #define SCREEN_SCALE  2 // 2 (60 x 60) or 3 (30 x 30)
-#define SCREEN_WIDTH  (DEVICE_WIDTH  >> SCREEN_SCALE)
-#define SCREEN_HEIGHT (DEVICE_HEIGHT >> SCREEN_SCALE)
-#define SCREEN_DEV(v) ((int)(v) << SCREEN_SCALE)  // Screen to Device
+#define SCREEN_DEV(v) ((int)(v) << SCREEN_SCALE) // Screen to Device
+#define DEV_SCREEN(v) ((int)(v) >> SCREEN_SCALE) // Device to Screen
+#define SCREEN_WIDTH  DEV_SCREEN(DEVICE_WIDTH)
+#define SCREEN_HEIGHT DEV_SCREEN(DEVICE_HEIGHT)
 
-// Block (coodinate on the screen)
+// Block (Screen coordinate system)
 #define BLOCK_ROWS    5
 #define BLOCK_COLS    10
 #define BLOCK_WIDTH   (SCREEN_WIDTH / BLOCK_COLS)
-#define BLOCK_HEIGHT  (8 >> SCREEN_SCALE)
-#define BLOCK_TOP     (6 -  SCREEN_SCALE + WALL_TOP)
+#define BLOCK_HEIGHT  DEV_SCREEN(8)
+#define BLOCK_TOP     (6 - SCREEN_SCALE + WALL_TOP)
 #define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
 #define N_BLOCKS      (BLOCK_ROWS * SCREEN_WIDTH / BLOCK_WIDTH)
 
 // Ball
-#define BALL_SIZE     8 // [px] (size on the device)
-#define BALL_MOVE_X   (4 - SCREEN_SCALE) // coodinate on the screen
-#define BALL_MOVE_Y   (4 - SCREEN_SCALE) // coodinate on the screen
+#define BALL_SIZE     8 // [px] (Device coordinate system)
+#define BALL_MOVE_X   (4 - SCREEN_SCALE) // Screen coordinate system
+#define BALL_MOVE_Y   (4 - SCREEN_SCALE) // Screen coordinate system
 #if DEMO_MODE == 1
-#define BALL_CYCLE    16  // [msec]
+#define BALL_CYCLE    16 // [msec]
 #else
-#define BALL_CYCLE    40  // [msec]
+#define BALL_CYCLE    40 // [msec]
 #endif
 
-// Paddle (coodinate on the screen)
-#define PADDLE_WIDTH  (40 >> SCREEN_SCALE)
-#define PADDLE_HEIGHT ( 8 >> SCREEN_SCALE)
+// Paddle (Screen coordinate system)
+#define PADDLE_WIDTH  DEV_SCREEN(40)
+#define PADDLE_HEIGHT DEV_SCREEN( 8)
 #define PADDLE_TOP    (SCREEN_HEIGHT - PADDLE_HEIGHT)
 #define PADDLE_CYCLE  16
 
-// Wall (coodinate on the screen)
+// Wall (Screen coordinate system)
 #define WALL_TOP      0
 #define WALL_LEFT     0
 #define WALL_RIGHT    (SCREEN_WIDTH - 1)
 
 // Font size for setTextSize(2)
-#define FONT_WIDTH   12 // [px] (size on the device)
-#define FONT_HEIGHT  16 // [px] (size on the device)
+#define FONT_WIDTH   12 // [px] (Device coordinate system)
+#define FONT_HEIGHT  16 // [px] (Device coordinate system)
 
 // Game score
 #define REFRESH_SCORE 2
@@ -348,7 +349,7 @@ void MoveBall(void) {
   } while (nx > 0 || ny > 0);
 
   // Redraw game info when ball is inside its area
-  if (ball.y <= (FONT_HEIGHT >> SCREEN_SCALE) + (BALL_SIZE >> SCREEN_SCALE)) {
+  if (ball.y <= DEV_SCREEN(FONT_HEIGHT) + DEV_SCREEN(BALL_SIZE)) {
     GameShow();
   }
 }
