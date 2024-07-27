@@ -4,7 +4,7 @@
 
 #define DEBUG 0
 #if DEBUG
-#define DEBUG_EXEC(x) {if (game.level >= 1) {x;}}
+#define DEBUG_EXEC(x) {if (game.level >= 10) {x;}}
 #else
 #define DEBUG_EXEC(x)
 #endif
@@ -432,7 +432,7 @@ void UpdateStatus(void) {
 }
 
 void setup() {
-#if 0
+#if DEBUG
   Serial.begin(115200);
   while (!Serial);
 #ifdef  ARDUINO_UNOR4_WIFI
