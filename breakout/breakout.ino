@@ -2,6 +2,12 @@
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <SPI.h>
 
+#define DEBUG 0
+#if DEBUG
+#define DEBUG_EXEC(x) {x;}
+#else
+#define DEBUG_EXEC(x)
+#endif
 #define DEMO_MODE 1
 
 /* SPI pin definition for Arduino UNO R3 and R4
@@ -168,6 +174,7 @@ void GameShow(int refresh = 0) {
     tft.print(game.level);
   }
 
+#if DEBUG == 0
   // Score (5 digits)
   if (refresh & REFRESH_SCORE) {
     tft.fillRect(96, 0, FONT_WIDTH * 5, FONT_HEIGHT, BLACK);
@@ -186,6 +193,7 @@ void GameShow(int refresh = 0) {
       tft.fillCircle(230 - (i * BALL_SIZE * 3 / 2), BALL_SIZE >> 1, BALL_SIZE >> 1, YELLOW);
     }
   }
+#endif
 }
 
 // Ball related methods
@@ -248,7 +256,11 @@ void BlocksDrawAll() {
 void BlocksEraseOne(int16_t block) {
   int16_t x = (block % BLOCK_COLS) * BLOCK_WIDTH;
   int16_t y = (block / BLOCK_COLS) * BLOCK_HEIGHT + game.block_top;
+
+  DEBUG_EXEC(delay(500));
   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
+  tone(PIN_SOUND, HIT_BLOCK, 20);
+  DEBUG_EXEC(delay(500));
 }
 
 int16_t BlocksFind(int16_t x, int16_t y) {
@@ -299,7 +311,6 @@ void BlocksCheckHit(void) {
   do {
     block = BlocksHit(ball.x, ball.y, ball.dx, ball.dy);
     if (block >= 0) {
-      tone(PIN_SOUND, HIT_BLOCK, 20);
       blocks[block] = false;
       BlocksEraseOne(block);
       game.score++;
@@ -316,6 +327,7 @@ void MoveBall(void) {
   int16_t dy = SIGN(ball.dy);
 
   do {
+    DEBUG_EXEC(ball.y <= game.block_end ? delay(100) : void(); );
     DrawBall(ball, tft, BLACK);
 
     if (nx > 0) {
@@ -343,9 +355,9 @@ void MoveBall(void) {
       ball.dy = -ball.dy;
       dy = -dy;
     }
-  
+
+    DrawBall(ball, tft, YELLOW);  
     BlocksCheckHit();
-    DrawBall(ball, tft, YELLOW);
   } while (nx > 0 || ny > 0);
 
   // Redraw game info when ball is inside its area
