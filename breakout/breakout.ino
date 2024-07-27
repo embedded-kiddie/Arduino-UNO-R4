@@ -219,9 +219,7 @@ bool BallLost(void) {
 
 // Block related methods
 void BlocksInit() {
-  for(int16_t i = 0; i < N_BLOCKS; i++) {
-    blocks[i] = true;
-  }
+  memset((void*)blocks, (int)true, sizeof(blocks));
 }
 
 int16_t BlocksCount() {
@@ -240,8 +238,8 @@ void BlocksDrawAll() {
   static const uint16_t colors[] PROGMEM = {CYAN, MAGENTA, YELLOW, RED, GREEN, ORANGE};
 
   int16_t x, y;
-  int16_t i = 0;
   int16_t c = 0;
+  int16_t i = 0;
 
   for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c = (c + 1) % BLOCK_ROWS) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
@@ -356,7 +354,7 @@ void MoveBall(void) {
       dy = -dy;
     }
 
-    DrawBall(ball, tft, YELLOW);  
+    DrawBall(ball, tft, YELLOW);
     BlocksCheckHit();
   } while (nx > 0 || ny > 0);
 
