@@ -4,7 +4,7 @@
 
 #define DEBUG 0
 #if DEBUG
-#define DEBUG_EXEC(x) {x;}
+#define DEBUG_EXEC(x) {if (game.level >= 1) {x;}}
 #else
 #define DEBUG_EXEC(x)
 #endif
@@ -256,8 +256,11 @@ void BlocksEraseOne(int16_t block) {
   int16_t y = (block / BLOCK_COLS) * BLOCK_HEIGHT + game.block_top;
 
   DEBUG_EXEC(delay(500));
+  DEBUG_EXEC(Serial.println(String(x) + ", " + String(y)));
+
   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
   tone(PIN_SOUND, HIT_BLOCK, 20);
+
   DEBUG_EXEC(delay(500));
 }
 
