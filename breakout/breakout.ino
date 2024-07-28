@@ -10,7 +10,7 @@
 
 #define DEBUG 0
 #if DEBUG
-#define DEBUG_EXEC(x) {if (game.level >= 10) {x;}}
+#define DEBUG_EXEC(x) {if (game.level >= 1) {x;}}
 #else
 #define DEBUG_EXEC(x)
 #endif
@@ -63,7 +63,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #endif
 
 // Paddle (Screen coordinate system)
-#define PADDLE_WIDTH  DEV_SCREEN(40)
+#define PADDLE_WIDTH  DEV_SCREEN(44)
 #define PADDLE_HEIGHT DEV_SCREEN( 8)
 #define PADDLE_TOP    (SCREEN_HEIGHT - PADDLE_HEIGHT)
 #define PADDLE_CYCLE  16
@@ -156,13 +156,7 @@ bool blocks[N_BLOCKS];
 
 // Game related method
 void GameInit(Game_t &game) {
-  game.level = 1;
-  game.score = 0;
-  game.balls = 5;
-  game.ball_cycle = BALL_CYCLE;
-  game.block_top = BLOCK_TOP;
-  game.block_end = BLOCK_END(BLOCK_TOP);
-  game.paddle_width = PADDLE_WIDTH;
+  game = { 1, 5, 0, BLOCK_TOP, BLOCK_END(BLOCK_TOP), BALL_CYCLE, PADDLE_WIDTH };
 }
 
 void GameShow(int refresh = 0) {
@@ -347,8 +341,8 @@ void MoveBall(void) {
     if (ny > 0) {
       ny--;
       ball.y += dy;
-      if (ball.y == PADDLE_TOP - PADDLE_HEIGHT) {
-        if (ball.x >= paddle && ball.x < paddle + PADDLE_WIDTH) {
+      if (ball.y == PADDLE_TOP - 1) {
+        if (paddle - 1 <= ball.x && ball.x <= paddle + PADDLE_WIDTH) {
           ball.dy = -ball.dy;
           dy = -dy;
           tone(PIN_SOUND, HIT_PADDLE, 20);
@@ -430,7 +424,7 @@ void UpdateStatus(void) {
       status = START;
       break;
     case GAMEOVER:
-      while (1);
+      yield();
       break;
   }
 }
