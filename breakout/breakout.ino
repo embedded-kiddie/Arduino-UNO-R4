@@ -11,7 +11,7 @@
 #define DEMO_MODE 1
 
 /* SPI pin definition for Arduino UNO R3 and R4
-  | ST7798 | PIN  |  R3  |   R4   |     Description      |
+  | ST7789 | PIN  |  R3  |   R4   |     Description      |
   |--------|------|------|--------|----------------------|
   | SCL    |  D13 | SCK  | RSPCKA | Serial clock         |
   | SDA    | ~D11 | COPI | COPIA  | Serial data input    |
@@ -439,7 +439,7 @@ void setup() {
 #endif
 
   // Init ST7789
-  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // or SPI_MODE3
+  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
   tft.setRotation(2);
 }
 
