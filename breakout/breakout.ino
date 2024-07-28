@@ -33,7 +33,7 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define PIN_PADDLE  A5  // Potentiometer or Joystick
+#define PIN_RACKET  A5  // Potentiometer or Joystick
 #define PIN_SOUND   7   // Buzzer
 
 // Pseudo screen scaling
@@ -62,11 +62,11 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define BALL_CYCLE    40 // [msec]
 #endif
 
-// Paddle (Screen coordinate system)
-#define PADDLE_WIDTH  DEV_SCREEN(44)
-#define PADDLE_HEIGHT DEV_SCREEN( 8)
-#define PADDLE_TOP    (SCREEN_HEIGHT - PADDLE_HEIGHT)
-#define PADDLE_CYCLE  16
+// Racket (Screen coordinate system)
+#define RACKET_WIDTH  DEV_SCREEN(44)
+#define RACKET_HEIGHT DEV_SCREEN( 8)
+#define RACKET_TOP    (SCREEN_HEIGHT - RACKET_HEIGHT)
+#define RACKET_CYCLE  16
 
 // Wall (Screen coordinate system)
 #define WALL_TOP      0
@@ -109,7 +109,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 // Tone frequency
 #define HIT_BLOCK   NOTE_C4
-#define HIT_PADDLE  NOTE_C3
+#define HIT_RACKET  NOTE_C3
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -123,7 +123,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #else
 #define DrawBall(ball, tft, color)  tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, (color))
 #endif
-#define DrawPaddle(paddle, tft, color)  tft.fillRect(SCREEN_DEV(paddle), SCREEN_DEV(PADDLE_TOP), SCREEN_DEV(PADDLE_WIDTH), SCREEN_DEV(PADDLE_HEIGHT), (color))
+#define DrawRacket(racket, tft, color)  tft.fillRect(SCREEN_DEV(racket), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
 
 typedef enum {
   OPENING,
@@ -140,7 +140,7 @@ typedef struct {
   uint16_t  block_top;
   uint16_t  block_end;
   uint8_t   ball_cycle;
-  uint8_t   paddle_width;
+  uint8_t   racket_width;
 } Game_t;
 
 typedef struct {
@@ -151,12 +151,12 @@ typedef struct {
 // Global variables
 Game_t game;
 Ball_t ball;
-int16_t paddle;
+int16_t racket;
 bool blocks[N_BLOCKS];
 
 // Game related method
 void GameInit(Game_t &game) {
-  game = { 1, 5, 0, BLOCK_TOP, BLOCK_END(BLOCK_TOP), BALL_CYCLE, PADDLE_WIDTH };
+  game = { 1, 5, 0, BLOCK_TOP, BLOCK_END(BLOCK_TOP), BALL_CYCLE, RACKET_WIDTH };
 }
 
 void GameShow(int refresh = 0) {
@@ -210,7 +210,7 @@ void BallInit(Ball_t &ball) {
 }
 
 bool BallLost(void) {
-  if (ball.y >= PADDLE_TOP) {
+  if (ball.y >= RACKET_TOP) {
     return true;
   } else {
     return false;
@@ -341,11 +341,11 @@ void MoveBall(void) {
     if (ny > 0) {
       ny--;
       ball.y += dy;
-      if (ball.y == PADDLE_TOP - 1) {
-        if (paddle - 1 <= ball.x && ball.x <= paddle + PADDLE_WIDTH) {
+      if (ball.y == RACKET_TOP - 1) {
+        if (racket - 1 <= ball.x && ball.x <= racket + RACKET_WIDTH) {
           ball.dy = -ball.dy;
           dy = -dy;
-          tone(PIN_SOUND, HIT_PADDLE, 20);
+          tone(PIN_SOUND, HIT_RACKET, 20);
         }
       }
     }
@@ -365,22 +365,22 @@ void MoveBall(void) {
   }
 }
 
-void MovePaddle(void) {
-  int16_t before = paddle;
+void MoveRacket(void) {
+  int16_t before = racket;
 
 #if DEMO_MODE
-  paddle = ball.x - (PADDLE_WIDTH >> 1);
-  paddle = MIN(MAX(paddle, WALL_LEFT), WALL_RIGHT - PADDLE_WIDTH + 1);
+  racket = ball.x - (RACKET_WIDTH >> 1);
+  racket = MIN(MAX(racket, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
 #else
-  paddle = map(analogRead(PIN_PADDLE), 0, 1023, -5, SCREEN_WIDTH - PADDLE_WIDTH + 5);
-  paddle = constrain(paddle, WALL_LEFT, WALL_RIGHT - PADDLE_WIDTH + 1);
+  racket = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - RACKET_WIDTH + 5);
+  racket = constrain(racket, WALL_LEFT, WALL_RIGHT - RACKET_WIDTH + 1);
 #endif
 
-  if (before != paddle) {
-    DrawPaddle(before, tft, BLACK);
+  if (before != racket) {
+    DrawRacket(before, tft, BLACK);
   }
 
-  DrawPaddle(paddle, tft, WHITE);  
+  DrawRacket(racket, tft, WHITE);  
 }
 
 void StartPlaying(void) {
@@ -453,7 +453,7 @@ void loop() {
     MoveBall();
   }
 
-  DO_EVERY(PADDLE_CYCLE, TimePaddle) {
-    MovePaddle();
+  DO_EVERY(RACKET_CYCLE, TimeRacket) {
+    MoveRacket();
   }
 }
