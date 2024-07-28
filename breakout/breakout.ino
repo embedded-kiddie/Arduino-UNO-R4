@@ -148,11 +148,15 @@ typedef struct {
   int16_t   dx, dy;
 } Ball_t;
 
+typedef struct {
+  int16_t   x;
+} Racket_t;
+
 // Global variables
 Game_t game;
 Ball_t ball;
-int16_t racket;
-bool blocks[N_BLOCKS];
+Racket_t racket;
+bool blocks[BLOCK_ROWS][BLOCK_COLS];
 
 // Game related method
 void GameInit(Game_t &game) {
@@ -224,9 +228,10 @@ void BlocksInit() {
 
 int8_t BlocksCount() {
   int8_t n = 0;
-  
+  bool *p = (bool*)blocks;
+
   for (int8_t i = 0; i < sizeof(blocks); i++) {
-    n += (int8_t)blocks[i];
+    n += (int8_t)*p++;
   }
 
   return n;
@@ -237,11 +242,11 @@ void BlocksDrawAll() {
 
   int16_t x, y;
   int16_t c = 0;
-  int16_t i = 0;
+  bool *p = (bool*)blocks;
 
   for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c = (c + 1) % (sizeof(colors) / sizeof(colors[0]))) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
-      if (blocks[i++]) {
+      if (*p++) {
         tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), pgm_read_word(&colors[c]));
         tft.drawRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
       }
@@ -249,73 +254,53 @@ void BlocksDrawAll() {
   }
 }
 
-void BlocksEraseOne(int16_t block) {
-  int16_t x = (block % BLOCK_COLS) * BLOCK_WIDTH;
-  int16_t y = (block / BLOCK_COLS) * BLOCK_HEIGHT + game.block_top;
+void BlocksEraseOne(int16_t row, int16_t col) {
+  int16_t x = col * BLOCK_WIDTH;
+  int16_t y = row * BLOCK_HEIGHT + game.block_top;
 
   DEBUG_EXEC(delay(500));
   DEBUG_EXEC(Serial.println(String(x) + ", " + String(y)));
 
   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
   tone(PIN_SOUND, HIT_BLOCK, 20);
+  blocks[row][col] = false;
+  game.score++;
+  GameShow(REFRESH_SCORE);
 
   DEBUG_EXEC(delay(500));
 }
 
-int16_t BlocksFind(int16_t x, int16_t y) {
-  if ((x < WALL_LEFT) || (WALL_RIGHT < x)) {
-    return -1;
+bool BlockExist(int16_t x, int16_t y) {
+  int16_t row = (y - game.block_top);
+  int16_t col = (x - WALL_LEFT     );
+
+  if (row >= 0 && col >= 0) {
+    row /= BLOCK_HEIGHT;
+    col /= BLOCK_WIDTH;
+
+    if (row < BLOCK_ROWS && col < BLOCK_COLS && blocks[row][col]) {
+      blocks[row][col] = false;
+      BlocksEraseOne(row, col);
+      return true;
+    }
   }
 
-  if ((y < game.block_top) || (y > game.block_end)) {
-    return -1;
-  }
-
-  int16_t block = ((y - game.block_top) / BLOCK_HEIGHT) * BLOCK_COLS + x / BLOCK_WIDTH;
-  if (0 <= block && block < N_BLOCKS) {
-    return block;
-  } else {
-    return -1;
-  }
-}
-
-int16_t BlocksHit(int16_t x, int16_t y, int16_t &dx, int16_t &dy) {
-  int16_t block;
-
-  block = BlocksFind((int16_t)(x + dx), (int16_t)(y));
-  if ((block >= 0) && blocks[block]) {
-    dx = -dx;
-    return block;
-  }
-
-  block = BlocksFind((int16_t)(x), (int16_t)(y + dy));
-  if ((block >= 0) && blocks[block]) {
-    dy = -dy;
-    return block;
-  }
-
-  block = BlocksFind((int16_t)(x + dx), (int16_t)(y + dy));
-  if ((block >= 0) && blocks[block]) {
-    dx = -dx;
-    dy = -dy;
-    return block;
-  }
-
-  return -1;
+  return false;
 }
 
 void BlocksCheckHit(void) {
-  int16_t block;
+  if (BlockExist(ball.x + ball.dx, ball.y)) {
+    ball.dx = -ball.dx;
+  }
 
-  do {
-    block = BlocksHit(ball.x, ball.y, ball.dx, ball.dy);
-    if (block >= 0) {
-      blocks[block] = false;
-      BlocksEraseOne(block);
-      game.score++;
-      GameShow(REFRESH_SCORE);
-    }
-  } while (block != -1);
+  if (BlockExist(ball.x, ball.y + ball.dy)) {
+    ball.dy = -ball.dy;
+  }
+
+  if (BlockExist(ball.x + ball.dx, ball.y + ball.dy)) {
+    ball.dx = -ball.dx;
+    ball.dy = -ball.dy;
+  }
 }
 
 // Move Ball
@@ -342,7 +327,7 @@ void MoveBall(void) {
       ny--;
       ball.y += dy;
       if (ball.y == RACKET_TOP - 1) {
-        if (racket - 1 <= ball.x && ball.x <= racket + RACKET_WIDTH) {
+        if (racket.x - 1 <= ball.x && ball.x <= racket.x + RACKET_WIDTH) {
           ball.dy = -ball.dy;
           dy = -dy;
           tone(PIN_SOUND, HIT_RACKET, 20);
@@ -366,21 +351,21 @@ void MoveBall(void) {
 }
 
 void MoveRacket(void) {
-  int16_t before = racket;
+  int16_t before = racket.x;
 
 #if DEMO_MODE
-  racket = ball.x - (RACKET_WIDTH >> 1);
-  racket = MIN(MAX(racket, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
+  racket.x = ball.x - (RACKET_WIDTH >> 1);
+  racket.x = MIN(MAX(racket.x, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
 #else
-  racket = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - RACKET_WIDTH + 5);
-  racket = constrain(racket, WALL_LEFT, WALL_RIGHT - RACKET_WIDTH + 1);
+  racket.x = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - RACKET_WIDTH + 5);
+  racket.x = constrain(racket.x, WALL_LEFT, WALL_RIGHT - RACKET_WIDTH + 1);
 #endif
 
-  if (before != racket) {
+  if (before != racket.x) {
     DrawRacket(before, tft, BLACK);
   }
 
-  DrawRacket(racket, tft, WHITE);  
+  DrawRacket(racket.x, tft, WHITE);  
 }
 
 void StartPlaying(void) {
