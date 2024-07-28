@@ -113,11 +113,11 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define ClearScreen() tft.fillScreen(BLACK)
 
 #if SCREEN_SCALE == 2
-#define DrawBall(ball, tft, color)  tft.fillCircle(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE >> 1, color)
+#define DrawBall(ball, tft, color)  tft.fillCircle(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), (BALL_SIZE >> 1), (color))
 #else
-#define DrawBall(ball, tft, color)  tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, color)
+#define DrawBall(ball, tft, color)  tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, (color))
 #endif
-#define DrawPaddle(paddle, tft, color)  tft.fillRect(SCREEN_DEV(paddle), SCREEN_DEV(PADDLE_TOP), SCREEN_DEV(PADDLE_WIDTH), SCREEN_DEV(PADDLE_HEIGHT), color)
+#define DrawPaddle(paddle, tft, color)  tft.fillRect(SCREEN_DEV(paddle), SCREEN_DEV(PADDLE_TOP), SCREEN_DEV(PADDLE_WIDTH), SCREEN_DEV(PADDLE_HEIGHT), (color))
 
 typedef enum {
   OPENING,
@@ -186,7 +186,7 @@ void GameShow(int refresh = 0) {
 
   // Balls (5 digits)
   if (refresh == REFRESH_ALL) {
-    tft.fillRect(175, 0, DEVICE_WIDTH - 175, SCREEN_DEV(game.block_top - 1), BLACK);
+    tft.fillRect(175, 0, DEVICE_WIDTH - 175, FONT_HEIGHT, BLACK);
   }
   if (refresh != REFRESH_SCORE) {
     for (int i = 0; i < game.balls; i++) {
@@ -222,13 +222,11 @@ void BlocksInit() {
   memset((void*)blocks, (int)true, sizeof(blocks));
 }
 
-int16_t BlocksCount() {
-  int16_t n = 0;
+int8_t BlocksCount() {
+  int8_t n = 0;
   
-  for (int16_t i = 0; i < N_BLOCKS; i++) {
-    if (blocks[i]) {
-      n++;
-    }
+  for (int8_t i = 0; i < sizeof(blocks); i++) {
+    n += (int8_t)blocks[i];
   }
 
   return n;
@@ -241,7 +239,7 @@ void BlocksDrawAll() {
   int16_t c = 0;
   int16_t i = 0;
 
-  for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c = (c + 1) % BLOCK_ROWS) {
+  for(y = game.block_top; y <= game.block_end; y += BLOCK_HEIGHT, c = (c + 1) % (sizeof(colors) / sizeof(colors[0]))) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
       if (blocks[i++]) {
         tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), pgm_read_word(&colors[c]));
@@ -273,7 +271,7 @@ int16_t BlocksFind(int16_t x, int16_t y) {
     return -1;
   }
 
-  int16_t block = (y - game.block_top) / BLOCK_HEIGHT * BLOCK_COLS + x / BLOCK_WIDTH;
+  int16_t block = ((y - game.block_top) / BLOCK_HEIGHT) * BLOCK_COLS + x / BLOCK_WIDTH;
   if (0 <= block && block < N_BLOCKS) {
     return block;
   } else {

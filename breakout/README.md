@@ -22,6 +22,12 @@ SPI pin definition for Arduino UNO R3 and R4
   | RES    | ~D9  | PB1  | P303   | Reset signal         |
   | DC     |  D8  | PB0  | P304   | Display data/command |
 
+#### Pinout
+
+- [Arduino UNO R4 Minima](https://docs.arduino.cc/resources/pinouts/ABX00080-full-pinout.pdf) (PDF)
+- [Arduino UNO R4 WiFi](https://docs.arduino.cc/resources/pinouts/ABX00087-full-pinout.pdf) (PDF)
+- [Arduino UNO R3](https://docs.arduino.cc/resources/pinouts/A000066-full-pinout.pdf) (PDF)
+
 ## Acknowledgement
 
 This program was written with reference to the following articles:
