@@ -1,3 +1,9 @@
+/* 
+ * Copyright (c) 2024 embedded-kiddie
+ * Copyright (c) 2015 boochow
+ * Released under the MIT license
+ * https://opensource.org/license/mit
+ */
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <SPI.h>
@@ -27,7 +33,7 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define PIN_RACKET  A5  // Potentiometer or Joystick
+#define PIN_PADDLE  A5  // Potentiometer or Joystick
 #define PIN_SOUND   7   // Buzzer
 
 // Pseudo screen scaling
@@ -103,7 +109,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
 // Tone frequency
 #define HIT_BLOCK   NOTE_C4
-#define HIT_RACKET  NOTE_C3
+#define HIT_PADDLE  NOTE_C3
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -345,7 +351,7 @@ void MoveBall(void) {
         if (ball.x >= paddle && ball.x < paddle + PADDLE_WIDTH) {
           ball.dy = -ball.dy;
           dy = -dy;
-          tone(PIN_SOUND, HIT_RACKET, 20);
+          tone(PIN_SOUND, HIT_PADDLE, 20);
         }
       }
     }
@@ -372,7 +378,7 @@ void MovePaddle(void) {
   paddle = ball.x - (PADDLE_WIDTH >> 1);
   paddle = MIN(MAX(paddle, WALL_LEFT), WALL_RIGHT - PADDLE_WIDTH + 1);
 #else
-  paddle = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - PADDLE_WIDTH + 5);
+  paddle = map(analogRead(PIN_PADDLE), 0, 1023, -5, SCREEN_WIDTH - PADDLE_WIDTH + 5);
   paddle = constrain(paddle, WALL_LEFT, WALL_RIGHT - PADDLE_WIDTH + 1);
 #endif
 
@@ -438,7 +444,7 @@ void setup() {
 #endif
 #endif
 
-  // Init ST7789
+  // Initialize ST7789
   tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
   tft.setRotation(2);
 }
