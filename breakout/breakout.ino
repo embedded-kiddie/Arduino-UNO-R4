@@ -100,12 +100,12 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define ClearScreen() tft.fillScreen(BLACK)
 #define ClearMessage() tft.fillRect(0, DEVICE_HEIGHT / 2, DEVICE_WIDTH - 1, FONT_HEIGHT * 2, BLACK)
 
-#if SCREEN_SCALE == 2
+#if SCREEN_SCALE <= 2
 #define DrawBall(ball, tft, color)  tft.fillCircle(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), (BALL_SIZE >> 1), (color))
 #else
 #define DrawBall(ball, tft, color)  tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, (color))
 #endif
-#define DrawRacket(racket, tft, color)  tft.fillRect(SCREEN_DEV(racket), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
+#define DrawRacket(x, tft, color)   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
 
 typedef enum {
   OPENING,
@@ -145,7 +145,7 @@ Ball_t ball;
 Racket_t racket;
 bool blocks[BLOCK_ROWS][BLOCK_COLS];
 
-// Game related method
+// Initialize the game parameters with specified mode
 void GameInit(bool demo) {
   play = { demo, OPENING, 1, 5, 0, BLOCK_TOP, BLOCK_END(BLOCK_TOP), (uint8_t)(demo ? DEMO_CYCLE : BALL_CYCLE), RACKET_WIDTH, 0 };
   racket = { racket.x, racket.x, 0 };
@@ -302,7 +302,7 @@ void BlocksCheckHit(void) {
   }
 }
 
-// Move Ball
+// Move Ball and Racket
 void MoveBall(void) {
   if (play.balls && play.pause == 0) {
     int16_t nx = ABS(ball.dx);
@@ -344,7 +344,7 @@ void MoveBall(void) {
       BlocksCheckHit();
     } while (nx > 0 || ny > 0);
 
-    // Redraw game score when ball is inside its area
+    // Redraw game score when ball is inside the drawing area
     if (ball.y <= DEV_SCREEN(FONT_HEIGHT) + DEV_SCREEN(BALL_SIZE)) {
       ShowScore();
     }
@@ -360,7 +360,7 @@ void MoveRacket(void) {
   if (play.demo == false) {
     racket.x = x;
   } else {
-    // Once the user moves the racket sufficiently, demo mode will be disabled
+    // Once user moves the racket sufficiently, demo mode will be disabled
     int16_t dx = x - racket.x_prev;
     if (ABS(dx) > 1 && ++racket.count > 1) {
       racket.x = x;
