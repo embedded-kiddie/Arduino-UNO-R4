@@ -365,7 +365,7 @@ void MoveRacket(void) {
     if (ABS(dx) > 1 && ++racket.count > 1) {
       racket.x = x;
       GameInit(false); // --> demo = false, status = OPENING
-    } else if (play.pause == 0) {
+    } else {
       racket.x_prev = x;
       racket.x = ball.x - (RACKET_WIDTH >> 1);
       racket.x = MIN(MAX(racket.x, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
