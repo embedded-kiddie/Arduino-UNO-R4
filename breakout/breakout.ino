@@ -126,7 +126,7 @@ typedef struct {
   uint8_t   ball_cycle;
   uint8_t   racket_width;
   uint8_t   combo;
-  uint8_t   spin;
+  int8_t    spin;
   uint16_t  score;
   uint32_t  pause;
 } Play_t;
