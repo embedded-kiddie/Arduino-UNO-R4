@@ -97,7 +97,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define ABS(a)    ((a) > (0) ? (a) : -(a))
 #define SIGN(a)   ((a) > (0) ? (1) : (-1))
-#define N_ARRAY(a) (sizeof(a) / sizeof(a[0]))
+#define NARR(a, t) (sizeof(a) / sizeof(t))
 
 #define ClearScreen() tft.fillScreen(BLACK)
 #define ClearMessage() tft.fillRect(0, DEVICE_HEIGHT / 2, DEVICE_WIDTH - 1, FONT_HEIGHT * 2, BLACK)
@@ -226,14 +226,14 @@ bool BallLost(void) {
 
 // Block related methods
 void BlocksInit() {
-  memset((void*)blocks, (int)true, sizeof(blocks));
+  memset((void*)blocks, (int)true, NARR(blocks, bool));
 }
 
 int8_t BlocksCount() {
   int8_t n = 0;
   bool *p = (bool*)blocks;
 
-  for (int8_t i = 0; i < sizeof(blocks); i++) {
+  for (int8_t i = 0; i < NARR(blocks, bool); i++) {
     n += (int8_t)*p++;
   }
 
@@ -247,7 +247,7 @@ void BlocksDrawAll() {
   int16_t c = 0;
   bool *p = (bool*)blocks;
 
-  for(y = play.block_top; y <= play.block_end; y += BLOCK_HEIGHT, c = (c + 1) % N_ARRAY(colors)) {
+  for(y = play.block_top; y <= play.block_end; y += BLOCK_HEIGHT, c = (c + 1) % NARR(colors, uint16_t)) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
       if (*p++) {
         tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), pgm_read_word(&colors[c]));
