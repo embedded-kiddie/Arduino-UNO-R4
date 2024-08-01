@@ -97,6 +97,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define ABS(a)    ((a) > (0) ? (a) : -(a))
 #define SIGN(a)   ((a) > (0) ? (1) : (-1))
+#define N_ARRAY(a) (sizeof(a) / sizeof(a[0]))
 
 #define ClearScreen() tft.fillScreen(BLACK)
 #define ClearMessage() tft.fillRect(0, DEVICE_HEIGHT / 2, DEVICE_WIDTH - 1, FONT_HEIGHT * 2, BLACK)
@@ -185,7 +186,7 @@ void ShowScore(int refresh = 0) {
   if (refresh & REFRESH_SCORE) {
     tft.fillRect(96, 0, FONT_WIDTH * 5, FONT_HEIGHT, BLACK);
   }
-  char buf[8];
+  char buf[6];
   sprintf(buf, "%05d", play.score);
   tft.setCursor(96, 0);
   tft.print(buf);
@@ -246,7 +247,7 @@ void BlocksDrawAll() {
   int16_t c = 0;
   bool *p = (bool*)blocks;
 
-  for(y = play.block_top; y <= play.block_end; y += BLOCK_HEIGHT, c = (c + 1) % (sizeof(colors) / sizeof(colors[0]))) {
+  for(y = play.block_top; y <= play.block_end; y += BLOCK_HEIGHT, c = (c + 1) % N_ARRAY(colors)) {
     for(x = 0; x < SCREEN_WIDTH; x += BLOCK_WIDTH) {
       if (*p++) {
         tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), pgm_read_word(&colors[c]));
@@ -281,7 +282,6 @@ bool BlockExist(int16_t x, int16_t y) {
     col /= BLOCK_WIDTH;
 
     if (row < BLOCK_ROWS && col < BLOCK_COLS && blocks[row][col]) {
-      blocks[row][col] = false;
       BlocksEraseOne(row, col);
       return true;
     }
