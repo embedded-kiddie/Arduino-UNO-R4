@@ -29,6 +29,7 @@
 
 #define DEVICE_WIDTH  240
 #define DEVICE_HEIGHT 240
+#define DEVICE_ORIGIN 2
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -51,7 +52,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
 
 // Ball
-#define BALL_SIZE     8 // [px] (Device coordinate system)
+#define BALL_SIZE     7 // [px] (Device coordinate system)
 #define BALL_MOVE_X   (4 - SCREEN_SCALE) // Screen coordinate system
 #define BALL_MOVE_Y   (4 - SCREEN_SCALE) // Screen coordinate system
 #define BALL_CYCLE    40 // [msec]
@@ -100,12 +101,12 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define ClearScreen() tft.fillScreen(BLACK)
 #define ClearMessage() tft.fillRect(0, DEVICE_HEIGHT / 2, DEVICE_WIDTH - 1, FONT_HEIGHT * 2, BLACK)
 
-#if SCREEN_SCALE <= 2
-#define DrawBall(ball, tft, color)  tft.fillCircle(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), (BALL_SIZE >> 1), (color))
+#if (SCREEN_SCALE <= 2)
+#define DrawBall(ball, tft, color) tft.fillCircle(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), (BALL_SIZE >> 1), (color))
 #else
-#define DrawBall(ball, tft, color)  tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, (color))
+#define DrawBall(ball, tft, color) tft.fillRect(SCREEN_DEV(ball.x), SCREEN_DEV(ball.y), BALL_SIZE, BALL_SIZE, (color))
 #endif
-#define DrawRacket(x, tft, color)   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
+#define DrawRacket(x, tft, color) tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
 
 typedef enum {
   OPENING,
@@ -120,11 +121,13 @@ typedef struct {
   Status_t  status;
   uint8_t   level;
   uint8_t   balls;
-  uint16_t  score;
-  uint16_t  block_top;
-  uint16_t  block_end;
+  uint8_t   block_top;
+  uint8_t   block_end;
   uint8_t   ball_cycle;
   uint8_t   racket_width;
+  uint8_t   combo;
+  uint8_t   spin;
+  uint16_t  score;
   uint32_t  pause;
 } Play_t;
 
@@ -147,7 +150,7 @@ bool blocks[BLOCK_ROWS][BLOCK_COLS];
 
 // Initialize the game parameters with specified mode
 void GameInit(bool demo) {
-  play = { demo, OPENING, 1, 5, 0, BLOCK_TOP, BLOCK_END(BLOCK_TOP), (uint8_t)(demo ? DEMO_CYCLE : BALL_CYCLE), RACKET_WIDTH, 0 };
+  play = { demo, OPENING, 1, 5, BLOCK_TOP, BLOCK_END(BLOCK_TOP), (uint8_t)(demo ? DEMO_CYCLE : BALL_CYCLE), RACKET_WIDTH, 0, };
   racket = { racket.x, racket.x, 0 };
 }
 
@@ -177,7 +180,7 @@ void ShowScore(int refresh = 0) {
     tft.print(play.level);
   }
 
-#if DEBUG == 0
+#if (DEBUG == 0)
   // Score (5 digits)
   if (refresh & REFRESH_SCORE) {
     tft.fillRect(96, 0, FONT_WIDTH * 5, FONT_HEIGHT, BLACK);
@@ -203,7 +206,7 @@ void ShowScore(int refresh = 0) {
 void BallInit(void) {
   DrawBall(ball, tft, BLACK);
 
-  int16_t x = random(0, SCREEN_WIDTH);
+  int16_t x = random(1, SCREEN_WIDTH - 1);
   ball = {
     .x  = (int16_t)x,
     .y  = (int16_t)(play.block_end + BLOCK_HEIGHT),
@@ -263,7 +266,7 @@ void BlocksEraseOne(int16_t row, int16_t col) {
   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
   tone(PIN_SOUND, HIT_BLOCK, 20);
   blocks[row][col] = false;
-  play.score++;
+  play.score += ++play.combo;
   ShowScore(REFRESH_SCORE);
 
   DEBUG_EXEC(delay(500));
@@ -311,7 +314,7 @@ void MoveBall(void) {
     int16_t dy = SIGN(ball.dy);
 
     do {
-      DEBUG_EXEC(ball.y <= play.block_end ? delay(100) : void(); );
+      DEBUG_EXEC(ball.y <= play.block_end ? delay(100) : void(););
       DrawBall(ball, tft, BLACK);
 
       if (nx > 0) {
@@ -328,6 +331,15 @@ void MoveBall(void) {
         ball.y += dy;
         if (ball.y == RACKET_TOP - 1) {
           if (racket.x - 1 <= ball.x && ball.x <= racket.x + RACKET_WIDTH) {
+#if (SCREEN_SCALE <= 2)
+            int8_t d = ball.x - (racket.x + (RACKET_WIDTH >> 1));
+            if (ABS(d) < (RACKET_WIDTH >> 2)) {
+              ball.dx = SIGN(ball.dx) * (BALL_MOVE_X >> 1); // center
+            } else {
+              ball.dx = SIGN(ball.dx) * (BALL_MOVE_X); // edge
+            }
+#endif
+            play.combo = 0;
             ball.dy = -ball.dy;
             dy = -dy;
             tone(PIN_SOUND, HIT_RACKET, 20);
@@ -446,7 +458,7 @@ void setup() {
 
   // Initialize ST7789
   tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
-  tft.setRotation(2);
+  tft.setRotation(DEVICE_ORIGIN);
   tft.setTextColor(WHITE);
 
   GameInit(true);
