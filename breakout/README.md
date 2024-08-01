@@ -1,6 +1,6 @@
 # Breakout game
 
-![Breakout game](breakout.jpg)
+[![Breakout game](breakout.jpg)](https://youtu.be/K5Ht-r3FQZE "Arduino UNO R4 &amp; 240x240 LCD Breakeout Game - YouTube")
 
 ## Dependencies
 
