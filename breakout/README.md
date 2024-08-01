@@ -9,7 +9,7 @@
 
 ## Wiring diagram
 
-![Wiring diagram](LCD240x240.png)
+![Wiring diagram](LCD240x240.jpg)
 
 ### Pin Assignments
 
