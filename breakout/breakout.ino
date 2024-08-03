@@ -217,11 +217,7 @@ void BallInit(void) {
 }
 
 bool BallLost(void) {
-  if (ball.y >= RACKET_TOP) {
-    return true;
-  } else {
-    return false;
-  }
+  return ball.y >= RACKET_TOP ? true : false;
 }
 
 // Block related methods
@@ -261,8 +257,7 @@ void BlocksEraseOne(int16_t row, int16_t col) {
   int16_t x = col * BLOCK_WIDTH;
   int16_t y = row * BLOCK_HEIGHT + play.block_top;
 
-  DEBUG_EXEC(delay(500));
-  DEBUG_EXEC(Serial.println(String(x) + ", " + String(y)));
+  DEBUG_EXEC(delay(500); Serial.println(String(x) + ", " + String(y)));
 
   tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(y), SCREEN_DEV(BLOCK_WIDTH), SCREEN_DEV(BLOCK_HEIGHT), BLACK);
   tone(PIN_SOUND, HIT_BLOCK, 20);
@@ -314,7 +309,6 @@ void MoveBall(void) {
     int16_t dy = SIGN(ball.dy);
 
     do {
-      DEBUG_EXEC(ball.y <= play.block_end ? delay(100) : void(););
       DrawBall(ball, tft, BLACK);
 
       if (nx > 0) {
@@ -342,6 +336,7 @@ void MoveBall(void) {
             play.combo = 0;
             ball.dy = -ball.dy;
             dy = -dy;
+            DEBUG_EXEC(DrawBall(ball, tft, YELLOW); delay(500));
             tone(PIN_SOUND, HIT_RACKET, 20);
           }
         }
