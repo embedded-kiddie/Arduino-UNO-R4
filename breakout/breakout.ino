@@ -47,8 +47,8 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define BLOCK_ROWS    5
 #define BLOCK_COLS    10
 #define BLOCK_WIDTH   (SCREEN_WIDTH / BLOCK_COLS)
-#define BLOCK_HEIGHT  DEV_SCREEN(8)
-#define BLOCK_TOP     (6 - SCREEN_SCALE + WALL_TOP)
+#define BLOCK_HEIGHT  DEV_SCREEN( 8)
+#define BLOCK_TOP     DEV_SCREEN(20)
 #define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
 
 // Ball
@@ -70,12 +70,12 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define WALL_RIGHT    (SCREEN_WIDTH - 1)
 
 // Font size for setTextSize(2)
-#define FONT_WIDTH   12 // [px] (Device coordinate system)
-#define FONT_HEIGHT  16 // [px] (Device coordinate system)
+#define FONT_WIDTH    12 // [px] (Device coordinate system)
+#define FONT_HEIGHT   16 // [px] (Device coordinate system)
 
-// Game score
-#define REFRESH_SCORE 2
-#define REFRESH_ALL   3
+// Drawing level and score
+#define DRAW_SCORE    2
+#define DRAW_ALL      3
 
 // Colors by 16-bit (R5-G6-B5)
 #define BLACK     ST77XX_BLACK
@@ -93,9 +93,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define HIT_BLOCK   NOTE_C4
 #define HIT_RACKET  NOTE_C3
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define ABS(a)    ((a) > (0) ? (a) : -(a))
+// Misc functions
 #define SIGN(a)   ((a) > (0) ? (1) : (-1))
 #define NARR(a, t) (sizeof(a) / sizeof(t))
 
@@ -109,6 +107,7 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #endif
 #define DrawRacket(x, tft, color) tft.fillRect(SCREEN_DEV(x), SCREEN_DEV(RACKET_TOP), SCREEN_DEV(RACKET_WIDTH), SCREEN_DEV(RACKET_HEIGHT), (color))
 
+// Type definitions
 typedef enum {
   OPENING,
   START,
@@ -149,13 +148,9 @@ Ball_t ball;
 Racket_t racket;
 bool blocks[BLOCK_ROWS][BLOCK_COLS];
 
-// Initialize the game parameters with specified mode
-void GameInit(bool demo) {
-  play = { demo, OPENING, 1, 5, BLOCK_TOP, BLOCK_END(BLOCK_TOP), (uint8_t)(demo ? DEMO_CYCLE : BALL_CYCLE), RACKET_WIDTH, 0, };
-  racket = { racket.x, racket.x, 0 };
-}
+void GameInit(bool demo);
 
-void ShowMessage(uint32_t pause, uint16_t x, const char* msg) {
+void DrawMessage(uint32_t pause, uint16_t x, const char* msg) {
   tft.setTextSize(3);
   tft.setCursor(x, DEVICE_HEIGHT / 2);
 
@@ -167,23 +162,23 @@ void ShowMessage(uint32_t pause, uint16_t x, const char* msg) {
   play.pause = millis() + pause;
 }
 
-void ShowScore(int refresh = 0) {
+void DrawScore(int refresh = 0) {
   tft.setTextSize(2);
   tft.setCursor(4, 0);
   tft.print("Lv:");
 
   // Level (3 digits)
-  if (refresh == REFRESH_ALL) {
+  if (refresh == DRAW_ALL) {
     tft.fillRect(40, 0, FONT_WIDTH * 3, FONT_HEIGHT, BLACK);
   }
-  if (refresh != REFRESH_SCORE) {
+  if (refresh != DRAW_SCORE) {
     tft.setCursor(40, 0);
     tft.print(play.level);
   }
 
 #if (DEBUG == 0)
   // Score (5 digits)
-  if (refresh & REFRESH_SCORE) {
+  if (refresh & DRAW_SCORE) {
     tft.fillRect(96, 0, FONT_WIDTH * 5, FONT_HEIGHT, BLACK);
   }
   char buf[6];
@@ -192,10 +187,10 @@ void ShowScore(int refresh = 0) {
   tft.print(buf);
 
   // Balls (5 digits)
-  if (refresh == REFRESH_ALL) {
+  if (refresh == DRAW_ALL) {
     tft.fillRect(175, 0, DEVICE_WIDTH - 175, FONT_HEIGHT, BLACK);
   }
-  if (refresh != REFRESH_SCORE) {
+  if (refresh != DRAW_SCORE) {
     for (int i = 0; i < play.balls; i++) {
       tft.fillCircle(230 - (i * BALL_SIZE * 3 / 2), BALL_SIZE >> 1, BALL_SIZE >> 1, YELLOW);
     }
@@ -203,24 +198,7 @@ void ShowScore(int refresh = 0) {
 #endif
 }
 
-// Ball related methods
-void BallInit(void) {
-  DrawBall(ball, tft, BLACK);
-
-  int16_t x = random(1, SCREEN_WIDTH - 1);
-  ball = {
-    .x  = (int16_t)x,
-    .y  = (int16_t)(play.block_end + BLOCK_HEIGHT),
-    .dx = (int16_t)(x > (SCREEN_WIDTH >> 1) ? -BALL_MOVE_X : BALL_MOVE_X),
-    .dy = (int16_t)BALL_MOVE_Y
-  };
-}
-
-bool BallLost(void) {
-  return ball.y >= RACKET_TOP ? true : false;
-}
-
-// Block related methods
+// Block related method
 void BlocksInit() {
   memset((void*)blocks, (int)true, NARR(blocks, bool));
 }
@@ -263,7 +241,7 @@ void BlocksEraseOne(int16_t row, int16_t col) {
   tone(PIN_SOUND, HIT_BLOCK, 20);
   blocks[row][col] = false;
   play.score += ++play.combo;
-  ShowScore(REFRESH_SCORE);
+  DrawScore(DRAW_SCORE);
 
   DEBUG_EXEC(delay(500));
 }
@@ -300,11 +278,27 @@ void BlocksCheckHit(void) {
   }
 }
 
-// Move Ball and Racket
-void MoveBall(void) {
+// Ball related method
+void BallInit(void) {
+  DrawBall(ball, tft, BLACK);
+
+  int16_t x = random(1, SCREEN_WIDTH - 1);
+  ball = {
+    .x  = (int16_t)x,
+    .y  = (int16_t)(play.block_end + BLOCK_HEIGHT),
+    .dx = (int16_t)(x > (SCREEN_WIDTH >> 1) ? -BALL_MOVE_X : BALL_MOVE_X),
+    .dy = (int16_t)BALL_MOVE_Y
+  };
+}
+
+bool BallLost(void) {
+  return ball.y >= RACKET_TOP ? true : false;
+}
+
+void BallMove(void) {
   if (play.balls && play.pause == 0) {
-    int16_t nx = ABS(ball.dx);
-    int16_t ny = ABS(ball.dy);
+    int16_t nx = abs(ball.dx);
+    int16_t ny = abs(ball.dy);
     int16_t dx = SIGN(ball.dx);
     int16_t dy = SIGN(ball.dy);
 
@@ -327,7 +321,7 @@ void MoveBall(void) {
           if (racket.x - 1 <= ball.x && ball.x <= racket.x + RACKET_WIDTH) {
 #if (SCREEN_SCALE <= 2)
             int8_t d = ball.x - (racket.x + (RACKET_WIDTH >> 1));
-            if (ABS(d) < (RACKET_WIDTH >> 2)) {
+            if (abs(d) < (RACKET_WIDTH >> 2)) {
               ball.dx = SIGN(ball.dx) * (BALL_MOVE_X >> 1); // center
             } else {
               ball.dx = SIGN(ball.dx) * (BALL_MOVE_X); // edge
@@ -353,12 +347,17 @@ void MoveBall(void) {
 
     // Redraw game score when ball is inside the drawing area
     if (ball.y <= DEV_SCREEN(FONT_HEIGHT) + DEV_SCREEN(BALL_SIZE)) {
-      ShowScore();
+      DrawScore();
     }
   }
 }
 
-void MoveRacket(void) {
+// Racket related method
+void RacketInit() {
+  racket = { racket.x, racket.x, 0 };
+}
+
+void RacketMove(void) {
   int16_t x, before = racket.x;
 
   x = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - RACKET_WIDTH + 5);
@@ -369,13 +368,13 @@ void MoveRacket(void) {
   } else {
     // Once user moves the racket sufficiently, demo mode will be disabled
     int16_t dx = x - racket.x_prev;
-    if (ABS(dx) > 1 && ++racket.count > 1) {
+    if (abs(dx) > 1 && ++racket.count > 1) {
       racket.x = x;
       GameInit(false); // --> demo = false, status = OPENING
     } else {
       racket.x_prev = x;
       racket.x = ball.x - (RACKET_WIDTH >> 1);
-      racket.x = MIN(MAX(racket.x, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
+      racket.x = min(max(racket.x, WALL_LEFT), WALL_RIGHT - RACKET_WIDTH + 1);
     }
   }
 
@@ -386,33 +385,33 @@ void MoveRacket(void) {
   DrawRacket(racket.x, tft, WHITE);  
 }
 
-void PlayStart(void) {
-  BallInit();
-  BlocksInit();
-  BlocksDrawAll();
-  ShowScore(REFRESH_ALL);
+// Play control method
+void PlayInit(bool demo) {
+  play = { demo, OPENING, 1, 5, BLOCK_TOP, BLOCK_END(BLOCK_TOP), (uint8_t)(demo ? DEMO_CYCLE : BALL_CYCLE), RACKET_WIDTH, 0, };
 }
 
 void PlayNext(void) {
   play.level++;
-  play.ball_cycle = MAX(play.ball_cycle - 1, (play.demo ? DEMO_CYCLE : BALL_CYCLE / 2));
-  play.block_top  = MIN(play.block_top  + 1, (BLOCK_TOP + 10));
-  play.block_end  = BLOCK_END(play.block_top);
+  play.ball_cycle -= 1;
+  play.ball_cycle = max(play.ball_cycle, (play.demo ? DEMO_CYCLE : BALL_CYCLE >> 1));
+  play.block_top += (BLOCK_HEIGHT >> 1);
+  play.block_top = min(play.block_top, (BLOCK_TOP + BLOCK_HEIGHT * 5));
+  play.block_end = BLOCK_END(play.block_top);
 }
 
-void UpdateStatus(void) {
+void PlayStatus(void) {
   if (play.pause == 0) {
     switch (play.status) {
       case OPENING:
         ClearScreen();
-        PlayStart();
+        GameStart();
         play.status = START;
         break;
       case START:
         BallInit();
         play.status = PLAYING;
         if (play.demo == false) {
-          ShowMessage(1000, 70, PSTR("Ready?"));
+          DrawMessage(1000, 70, PSTR("Ready?"));
         }
         break;
       case PLAYING:
@@ -420,26 +419,39 @@ void UpdateStatus(void) {
           play.status = CLEAR;
         } else if (BallLost()) {
           play.status = (--play.balls ? START : GAMEOVER);
-          ShowScore(REFRESH_ALL);
-          ShowMessage(1000, 80, PSTR("Oops!"));
+          DrawScore(DRAW_ALL);
+          DrawMessage(1000, 80, PSTR("Oops!"));
         }
         break;
       case CLEAR:
         PlayNext();
         play.status = OPENING;
         if (play.demo == false) {
-          ShowMessage(1000, 80, PSTR("Nice!"));
+          DrawMessage(1000, 80, PSTR("Nice!"));
         }
         break;
       case GAMEOVER:
         GameInit(true); // --> demo = true, status = OPENING
-        ShowMessage(2000, 40, PSTR("Game Over"));
+        DrawMessage(2000, 40, PSTR("Game Over"));
         break;
     }
   } else if (millis() >= play.pause) {
     ClearMessage();
     play.pause = 0;
   }
+}
+
+// Game initialize method
+void GameInit(bool demo) {
+  PlayInit(demo);
+  RacketInit();
+}
+
+void GameStart(void) {
+  BallInit();
+  BlocksInit();
+  BlocksDrawAll();
+  DrawScore(DRAW_ALL);
 }
 
 void setup() {
@@ -451,7 +463,6 @@ void setup() {
 #endif
 #endif
 
-  // Initialize ST7789
   tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
   tft.setRotation(DEVICE_ORIGIN);
   tft.setTextColor(WHITE);
@@ -463,13 +474,13 @@ void setup() {
 #define DO_EVERY(period, prev)  static uint32_t prev = 0; for (uint32_t now = millis(); now - prev >= period; prev = now)
 
 void loop() {
-  UpdateStatus();
+  PlayStatus();
 
   DO_EVERY(play.ball_cycle, TimeBall) {
-    MoveBall();
+    BallMove();
   }
 
   DO_EVERY(RACKET_CYCLE, TimeRacket) {
-    MoveRacket();
+    RacketMove();
   }
 }
