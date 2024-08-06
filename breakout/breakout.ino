@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2024 embedded-kiddie
  * Copyright (c) 2015 boochow
  * Released under the MIT license
@@ -77,6 +77,11 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define DRAW_SCORE    2
 #define DRAW_ALL      3
 
+// Tone frequency
+#include "pitches.h"
+#define HIT_BLOCK   NOTE_C4
+#define HIT_RACKET  NOTE_C3
+
 // Colors by 16-bit (R5-G6-B5)
 #define BLACK     ST77XX_BLACK
 #define WHITE     ST77XX_WHITE
@@ -87,11 +92,6 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define MAGENTA   ST77XX_MAGENTA
 #define YELLOW    ST77XX_YELLOW
 #define ORANGE    ST77XX_ORANGE
-
-// Tone frequency
-#include "pitches.h"
-#define HIT_BLOCK   NOTE_C4
-#define HIT_RACKET  NOTE_C3
 
 // Misc functions
 #define SIGN(a)   ((a) > (0) ? (1) : (-1))
@@ -399,7 +399,7 @@ void PlayNext(void) {
   play.block_end = BLOCK_END(play.block_top);
 }
 
-void PlayStatus(void) {
+void PlayControl(void) {
   if (play.pause == 0) {
     switch (play.status) {
       case OPENING:
@@ -474,7 +474,7 @@ void setup() {
 #define DO_EVERY(period, prev)  static uint32_t prev = 0; for (uint32_t now = millis(); now - prev >= period; prev = now)
 
 void loop() {
-  PlayStatus();
+  PlayControl();
 
   DO_EVERY(play.ball_cycle, TimeBall) {
     BallMove();
