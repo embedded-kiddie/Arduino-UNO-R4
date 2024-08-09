@@ -48,15 +48,15 @@ Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 #define BLOCK_COLS    10
 #define BLOCK_WIDTH   (SCREEN_WIDTH / BLOCK_COLS)
 #define BLOCK_HEIGHT  DEV_SCREEN( 8)
-#define BLOCK_TOP     DEV_SCREEN(20)
+#define BLOCK_TOP     DEV_SCREEN(18)
 #define BLOCK_END(t)  ((t) + BLOCK_ROWS * BLOCK_HEIGHT - 1)
 
 // Ball
 #define BALL_SIZE     7 // [px] (Device coordinate system)
-#define BALL_MOVE_X   (4 - SCREEN_SCALE) // Screen coordinate system
-#define BALL_MOVE_Y   (4 - SCREEN_SCALE) // Screen coordinate system
-#define BALL_CYCLE    40 // [msec]
-#define DEMO_CYCLE    16 // [msec]
+#define BALL_MOVE_X   (SCREEN_SCALE <= 2 ? 2 : 1) // Screen coordinate system
+#define BALL_MOVE_Y   (SCREEN_SCALE <= 2 ? 2 : 1) // Screen coordinate system
+#define BALL_CYCLE    (SCREEN_SCALE * 18) // [msec]
+#define DEMO_CYCLE    (SCREEN_SCALE *  8) // [msec]
 
 // Racket (Screen coordinate system)
 #define RACKET_WIDTH  DEV_SCREEN(44)
@@ -296,7 +296,7 @@ bool BallLost(void) {
 }
 
 void BallMove(void) {
-  if (play.balls && play.pause == 0) {
+  if (play.status  == PLAYING && play.pause == 0) {
     int16_t nx = abs(ball.dx);
     int16_t ny = abs(ball.dy);
     int16_t dx = SIGN(ball.dx);
