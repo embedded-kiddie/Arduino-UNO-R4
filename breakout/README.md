@@ -31,7 +31,7 @@ SPI pin definition for Arduino UNO R3 and R4
 ## Simulation by Wokwi
 
 [![Breakout Game](wokwi.jpg)](https://wokwi.com/projects/405346200615499777 "Breakout Game - Wokwi ESP32, STM32, Arduino Simulator")
-(Note: 5V-3.3V logic level conversion for ILI9341 SPI has been omitted.)
+(Note: The actual wiring requires logic level conversion to step down 5V to 3.3V.)
 
 ## Acknowledgement
 
