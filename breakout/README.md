@@ -28,7 +28,7 @@ SPI pin definition for Arduino UNO R3 and R4
 - [Arduino UNO R4 WiFi](https://docs.arduino.cc/resources/pinouts/ABX00087-full-pinout.pdf) (PDF)
 - [Arduino UNO R3](https://docs.arduino.cc/resources/pinouts/A000066-full-pinout.pdf) (PDF)
 
-#### Screen coodinates
+## Screen coodinates
 
 In case `DEVICE_WIDTH` is 240, `DEVICE_HEIGHT` is 240 and `SCREEN_SCALE` is `2`:
 
