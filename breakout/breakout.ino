@@ -33,7 +33,7 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define PIN_RACKET  A5  // Potentiometer or Joystick
+#define PIN_RACKET  A0  // Potentiometer or Joystick
 #define PIN_SOUND   7   // Buzzer
 
 // Pseudo screen scaling
