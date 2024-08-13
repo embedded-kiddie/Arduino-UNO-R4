@@ -68,13 +68,13 @@ const uint16_t camColors[] = {0x480F,
 uint16_t displayPixelWidth, displayPixelHeight;
 
 void TFT_Printf(uint8_t x, uint8_t y, const char* fmt, ...) {
-	int len = 0;
-	char buf[16];
+  int len = 0;
+  char buf[16];
 
-	va_list arg_ptr;
-	va_start(arg_ptr, fmt);
-	len = vsnprintf(buf, sizeof(buf), fmt, arg_ptr);
-	va_end(arg_ptr);
+  va_list arg_ptr;
+  va_start(arg_ptr, fmt);
+  len = vsnprintf(buf, sizeof(buf), fmt, arg_ptr);
+  va_end(arg_ptr);
 
   tft.fillRect(x, y, len * FONT_WIDTH, FONT_HEIGHT, ST77XX_BLACK);
   tft.setCursor(x, y);
@@ -98,17 +98,18 @@ void setup() {
   displayPixelWidth = DEVICE_WIDTH / 32;
   displayPixelHeight = DEVICE_HEIGHT / 32; //Keep pixels square 
  
-  const int n = sizeof(camColors) / sizeof(camColors[0]) - 1;
-  const int w = displayPixelWidth * 32;
-  for (int i = 0; i < n; i++) {
-    int j = map(i, 0, n, 0, w);
+  // Draw color bar
+  const long n = sizeof(camColors) / sizeof(camColors[0]) - 1;
+  const long w = displayPixelWidth * 32;
+  for (int i = 0; i <= n; i++) {
+    int16_t j = map(i, 0, n, 0, w);
     tft.fillRect(j, DEVICE_HEIGHT - FONT_HEIGHT * 4, 1, FONT_HEIGHT - 4, camColors[i]);
   }
 
   int y = DEVICE_HEIGHT - FONT_HEIGHT * 3;
-  TFT_Printf(displayPixelWidth *  0, y, "%d", MINTEMP);
-  TFT_Printf(displayPixelWidth * 13, y, "%3.1f", (float)(MINTEMP + MAXTEMP) / 2.0f);
-  TFT_Printf(displayPixelWidth * 29, y, "%d", MAXTEMP);
+  TFT_Printf(FONT_WIDTH *  0, y, "%d", MINTEMP);
+  TFT_Printf(FONT_WIDTH *  8, y, "%3.1f", (float)(MINTEMP + MAXTEMP) / 2.0f);
+  TFT_Printf(FONT_WIDTH * 17, y, "%d", MAXTEMP);
 
   delay(100);
 
@@ -125,11 +126,12 @@ void setup() {
   
   mlx.setMode(MLX90640_CHESS);
   mlx.setResolution(MLX90640_ADC_18BIT);
-//mlx.setRefreshRate(MLX90640_2_HZ); // unstable
-  mlx.setRefreshRate(MLX90640_4_HZ);
-//Wire.setClock(1000000); // max 1 MHz
-//Wire.setClock(100000); // 100 KHz, 2 FPS, stable
-  Wire.setClock(400000); // 400 KHz, 4-6 FPS, a little bit unstable
+//mlx.setRefreshRate(MLX90640_2_HZ); // 2 FPS
+  mlx.setRefreshRate(MLX90640_4_HZ); // 4 FPS
+//mlx.setRefreshRate(MLX90640_8_HZ); // 5 FPS
+//Wire.setClock(1000000); // 1 MHz (MAX) 2 FPS
+//Wire.setClock(100000); // 100 KHz, 2 FPS
+  Wire.setClock(400000); // 400 KHz, 4 FPS
 }
 
 void loop() {
