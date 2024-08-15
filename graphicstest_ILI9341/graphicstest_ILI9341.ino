@@ -40,10 +40,10 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);
-#ifdef  ARDUINO_UNOR4_WIFI
+//while (!Serial);
+//#ifdef  ARDUINO_UNOR4_WIFI
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
-#endif
+//#endif
   Serial.println("ILI9341 Test!"); 
  
   tft.begin();

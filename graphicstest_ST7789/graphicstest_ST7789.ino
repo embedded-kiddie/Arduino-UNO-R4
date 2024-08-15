@@ -90,16 +90,15 @@ float p = 3.1415926;
 
 void setup(void) {
   Serial.begin(115200);
-  while (!Serial);
-#ifdef  ARDUINO_UNOR4_WIFI
+//while (!Serial);
+//#ifdef  ARDUINO_UNOR4_WIFI
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
-#endif
+//#endif
   Serial.print(F("Hello! ST77xx TFT Test"));
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
   //tft.init(240, 240);           // Init ST7789 240x240
   tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
-  tft.invertDisplay(INVERT_DISPLAY);
   tft.setRotation(DEVICE_ROTATION);
 
   // OR use this initializer (uncomment) if using a 1.69" 280x240 TFT:
@@ -132,6 +131,8 @@ void setup(void) {
 }
 
 void loop() {
+  tft.invertDisplay(INVERT_DISPLAY);
+
   // large block of text
   tft.fillScreen(ST77XX_BLACK);
   tft.setTextSize(0);
