@@ -60,11 +60,13 @@
 #endif
 
 #if 0
+// 1.3 inch ... TFT_RST must be D9
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   240
 #define DEVICE_ROTATION 2
 #define INVERT_DISPLAY  true
 #else
+// 2.4 inch ... "RESET" on breakout board can be connected to "RESET" on UNO R4 instead of D9.
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   320
 #define DEVICE_ROTATION 0
@@ -94,7 +96,7 @@ void setup(void) {
 //#ifdef  ARDUINO_UNOR4_WIFI
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
 //#endif
-  Serial.print(F("Hello! ST77xx TFT Test"));
+  Serial.print(F("Hello! ST77xx TFT Test..."));
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
   //tft.init(240, 240);           // Init ST7789 240x240
