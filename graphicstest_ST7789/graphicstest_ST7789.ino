@@ -66,7 +66,7 @@
 #define DEVICE_ROTATION 2
 #define INVERT_DISPLAY  true
 #else
-// 2.4 inch ... "RESET" on breakout board can be connected to "RESET" on UNO R4 instead of D9.
+// 2.4 inch ... "RESET" on breakout board can be connected to "RESET" or +3.3V on UNO R4 instead of D9.
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   320
 #define DEVICE_ROTATION 0
