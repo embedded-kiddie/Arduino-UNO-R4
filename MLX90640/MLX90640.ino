@@ -137,8 +137,9 @@ void setup() {
 void loop() {
   uint32_t timestamp = millis();
   if (mlx.getFrame(frame) != 0) {
+    TFT_Printf(DEVICE_WIDTH / 2 - FONT_WIDTH * 3, DEVICE_WIDTH / 2 - FONT_HEIGHT * 3, "Failed");
     Serial.println("Failed");
-    delay(1000);
+    delay(1000); // false = no new frame capture
     return;
   }
 
@@ -149,17 +150,17 @@ void loop() {
   }
 
   int colorTemp;
-  for (uint8_t h=0; h<24; h++) {
-    for (uint8_t w=0; w<32; w++) {
-      float t = frame[h*32 + w];
-      // Serial.print(t, 1); Serial.print(", ");
+  for (uint8_t h = 0; h < 24; h++) {
+    for (uint8_t w = 0; w < 32; w++) {
+      float t = frame[h * 32 + w];
+      //Serial.print(t, 1); Serial.print(", ");
 
       t = min(t, MAXTEMP);
       t = max(t, MINTEMP); 
            
       uint8_t colorIndex = map(t, MINTEMP, MAXTEMP, 0, 255);
-      
       colorIndex = constrain(colorIndex, 0, 255);
+
       //draw the pixels!
       tft.fillRect(displayPixelWidth * w, displayPixelHeight * h,
                                displayPixelHeight, displayPixelWidth, 
