@@ -43,7 +43,7 @@
   #define TFT_RST        16
   #define TFT_DC         5
 
-#else
+#elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
   // For the breakout board, you can use any 2 or 3 pins.
   // These pins will also work for the 1.8" TFT shield.
 /* SPI pin definition for Arduino UNO R3 and R4
@@ -54,22 +54,36 @@
   | RES    | ~D9  | PB1  | P303   | Reset signal         |
   | DC     |  D8  | PB0  | P304   | Display data/command |
 */
-  #define TFT_CS        10
-  #define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
-  #define TFT_DC         8
+#define TFT_CS        10
+#define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC         8
+#define SPI_MODE      SPI_MODE3 // SPI_MODE2 or SPI_MODE3
+
+#elif defined(ARDUINO_XIAO_ESP32S3)
+// Seeed Studio XIAO ESP32-S3
+#define TFT_MISO      D9
+#define TFT_MOSI      D10
+#define TFT_SCLK      D8
+#define TFT_DC        D1
+#define TFT_CS        (-1) // dummy
+#define TFT_RST       (-1) // Or set to -1 and connect to Arduino RESET pin
+#define SPI_MODE      SPI_MODE3 // SPI_MODE3
+
+#else
+#warning "must specify board type"
 #endif
 
-#if 0
+#if 1
 // 1.3 inch ... TFT_RST must be D9
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   240
-#define DEVICE_ROTATION 2
+#define DEVICE_ORIGIN 2
 #define INVERT_DISPLAY  true
 #else
 // 2.4 inch ... "RESET" on breakout board can be connected to "RESET" or +3.3V on UNO R4 instead of D9.
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   320
-#define DEVICE_ROTATION 0
+#define DEVICE_ORIGIN 0
 #define INVERT_DISPLAY  false
 #endif
 
@@ -100,8 +114,8 @@ void setup(void) {
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
   //tft.init(240, 240);           // Init ST7789 240x240
-  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
-  tft.setRotation(DEVICE_ROTATION);
+  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE);
+  tft.setRotation(DEVICE_ORIGIN);
 
   // OR use this initializer (uncomment) if using a 1.69" 280x240 TFT:
   //tft.init(240, 280);           // Init ST7789 280x240
@@ -121,7 +135,9 @@ void setup(void) {
   // SPI speed defaults to SPI_DEFAULT_FREQ defined in the library, you can override it here
   // Note that speed allowable depends on chip and quality of wiring, if you go too fast, you
   // may end up with a black screen some times, or all the time.
-  //tft.setSPISpeed(40000000);
+#if defined (ARDUINO_XIAO_ESP32S3)
+  tft.setSPISpeed(80000000);
+#endif
   Serial.println(F("Initialized"));
 
   uint16_t time = millis();

@@ -3,6 +3,9 @@
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <SPI.h>
 
+#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
+  // For the breakout board, you can use any 2 or 3 pins.
+  // These pins will also work for the 1.8" TFT shield.
 /* SPI pin definition for Arduino UNO R3 and R4
   | ST7789 | PIN  |  R3  |   R4   |     Description      |
   |--------|------|------|--------|----------------------|
@@ -11,9 +14,24 @@
   | RES    | ~D9  | PB1  | P303   | Reset signal         |
   | DC     |  D8  | PB0  | P304   | Display data/command |
 */
-#define TFT_CS 10
-#define TFT_RST 9  // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC  8
+#define TFT_CS        10
+#define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC         8
+#define SPI_MODE      SPI_MODE3 // SPI_MODE2 or SPI_MODE3
+
+#elif defined(ARDUINO_XIAO_ESP32S3)
+// Seeed Studio XIAO ESP32-S3
+#define TFT_MISO      D9
+#define TFT_MOSI      D10
+#define TFT_SCLK      D8
+#define TFT_DC        D1
+#define TFT_CS        (-1) // dummy
+#define TFT_RST       (-1) // Or set to -1 and connect to Arduino RESET pin
+#define SPI_MODE      SPI_MODE3 // SPI_MODE3
+
+#else
+#warning "must specify board type"
+#endif
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
@@ -89,10 +107,13 @@ void setup() {
 #endif
 
   // Initialize ST7789
-  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE2); // SPI_MODE2 or SPI_MODE3
+  tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE);
   tft.setRotation(DEVICE_ORIGIN);
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextSize(2);
+#if defined (ARDUINO_XIAO_ESP32S3)
+  tft.setSPISpeed(80000000);
+#endif
   ClearScreen();
 
   displayPixelWidth = DEVICE_WIDTH / 32;
@@ -126,12 +147,19 @@ void setup() {
   
   mlx.setMode(MLX90640_CHESS);
   mlx.setResolution(MLX90640_ADC_18BIT);
-//mlx.setRefreshRate(MLX90640_2_HZ); // 2 FPS
+
+#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
+
   mlx.setRefreshRate(MLX90640_4_HZ); // 4 FPS
-//mlx.setRefreshRate(MLX90640_8_HZ); // 5 FPS
-//Wire.setClock(1000000); // 1 MHz (MAX) 2 FPS
-//Wire.setClock(100000); // 100 KHz, 2 FPS
-  Wire.setClock(400000); // 400 KHz, 4 FPS
+  Wire.setClock(400000); // 400 KHz
+
+#elif defined(ARDUINO_XIAO_ESP32S3)
+
+//mlx.setRefreshRate(MLX90640_16_HZ); // unstable
+  mlx.setRefreshRate(MLX90640_8_HZ);  // 8 FPS
+  Wire.setClock(400000); // 400 KHz
+
+#endif
 }
 
 void loop() {
@@ -155,8 +183,8 @@ void loop() {
       float t = frame[h * 32 + w];
       //Serial.print(t, 1); Serial.print(", ");
 
-      t = min(t, MAXTEMP);
-      t = max(t, MINTEMP); 
+      t = min((int)t, MAXTEMP);
+      t = max((int)t, MINTEMP); 
            
       uint8_t colorIndex = map(t, MINTEMP, MAXTEMP, 0, 255);
       colorIndex = constrain(colorIndex, 0, 255);
