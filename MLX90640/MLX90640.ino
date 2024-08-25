@@ -24,7 +24,7 @@
 #define TFT_MISO      D9
 #define TFT_MOSI      D10
 #define TFT_SCLK      D8
-#define TFT_CS        (-1)  // dummy
+#define TFT_CS        D2    // (-1)  // dummy
 #define TFT_RST       D0    // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC        D1
 #define SPI_MODE      SPI_MODE3 // SPI_MODE3
@@ -35,9 +35,21 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define DEVICE_WIDTH  240
-#define DEVICE_HEIGHT 240
-#define DEVICE_ORIGIN 2
+#if 0
+// 1.3 inch ... TFT_RST must be D9
+#define DEVICE_WIDTH    240
+#define DEVICE_HEIGHT   240
+#define DEVICE_ORIGIN   2
+#define PIXEL_SIZE      7
+#define INVERT_DISPLAY  true
+#else
+// 2.4 inch ... "RESET" on breakout board can be connected to "RESET" or +3.3V on UNO R4 instead of D9.
+#define DEVICE_WIDTH    240
+#define DEVICE_HEIGHT   320
+#define DEVICE_ORIGIN   1
+#define PIXEL_SIZE      7
+#define INVERT_DISPLAY  false
+#endif
 
 // Font size for setTextSize(2)
 #define FONT_WIDTH    12 // [px] (Device coordinate system)
@@ -83,9 +95,7 @@ const uint16_t camColors[] = {0x480F,
 0xF1E0,0xF1C0,0xF1A0,0xF180,0xF160,0xF140,0xF100,0xF0E0,0xF0C0,0xF0A0,
 0xF080,0xF060,0xF040,0xF020,0xF800,};
 
-uint16_t displayPixelWidth, displayPixelHeight;
-
-void TFT_Printf(uint8_t x, uint8_t y, const char* fmt, ...) {
+void TFT_Printf(uint16_t x, uint16_t y, const char* fmt, ...) {
   int len = 0;
   char buf[16];
 
@@ -109,25 +119,24 @@ void setup() {
   // Initialize ST7789
   tft.init(DEVICE_WIDTH, DEVICE_HEIGHT, SPI_MODE);
   tft.setRotation(DEVICE_ORIGIN);
+  tft.invertDisplay(INVERT_DISPLAY);
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextSize(2);
 #if defined (ARDUINO_XIAO_ESP32S3)
   tft.setSPISpeed(80000000);
 #endif
   ClearScreen();
-
-  displayPixelWidth = DEVICE_WIDTH / 32;
-  displayPixelHeight = DEVICE_HEIGHT / 32; //Keep pixels square 
  
   // Draw color bar
-  const long n = sizeof(camColors) / sizeof(camColors[0]) - 1;
-  const long w = displayPixelWidth * 32;
-  for (int i = 0; i <= n; i++) {
-    int16_t j = map(i, 0, n, 0, w);
-    tft.fillRect(j, DEVICE_HEIGHT - FONT_HEIGHT * 4, 1, FONT_HEIGHT - 4, camColors[i]);
+  const int n = sizeof(camColors) / sizeof(camColors[0]);
+  const int w = PIXEL_SIZE * 32;
+  int       y = PIXEL_SIZE * 24 + 3;
+  for (int i = 0; i < n; i++) {
+    int x = map(i, 0, n, 0, w);
+    tft.fillRect(x, y, 1, FONT_HEIGHT - 4, camColors[i]);
   }
 
-  int y = DEVICE_HEIGHT - FONT_HEIGHT * 3;
+  y += FONT_HEIGHT;
   TFT_Printf(FONT_WIDTH *  0, y, "%d", MINTEMP);
   TFT_Printf(FONT_WIDTH *  8, y, "%3.1f", (float)(MINTEMP + MAXTEMP) / 2.0f);
   TFT_Printf(FONT_WIDTH * 17, y, "%d", MAXTEMP);
@@ -171,12 +180,6 @@ void loop() {
     return;
   }
 
-  // Ambient temperature
-  float v = mlx.getTa(false);
-  if (v > 0) {
-    TFT_Printf(FONT_WIDTH * 10, DEVICE_HEIGHT - FONT_HEIGHT, "%4.1f'C", v);  // false = no new frame capture
-  }
-
   int colorTemp;
   for (uint8_t h = 0; h < 24; h++) {
     for (uint8_t w = 0; w < 32; w++) {
@@ -190,13 +193,17 @@ void loop() {
       colorIndex = constrain(colorIndex, 0, 255);
 
       //draw the pixels!
-      tft.fillRect(displayPixelWidth * w, displayPixelHeight * h,
-                               displayPixelHeight, displayPixelWidth, 
-                               camColors[colorIndex]);
+      tft.fillRect(PIXEL_SIZE * w, PIXEL_SIZE * h, PIXEL_SIZE, PIXEL_SIZE, camColors[colorIndex]);
     }
+  }
+
+  // Ambient temperature
+  float v = mlx.getTa(false);
+  if (v > 0) {
+    TFT_Printf(FONT_WIDTH * 12, PIXEL_SIZE * 24 + FONT_HEIGHT * 3, "%4.1f'C", v);  // false = no new frame capture
   }
 
   // FPS
   v = 2000.0f / (float)(millis() - timestamp); // 2 frames per display
-  TFT_Printf(0, DEVICE_HEIGHT - FONT_HEIGHT, "%3.2f FPS", v);
+  TFT_Printf(FONT_WIDTH, PIXEL_SIZE * 24 + FONT_HEIGHT * 3, "%4.2f FPS", v);
 }
