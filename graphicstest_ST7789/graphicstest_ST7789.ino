@@ -61,29 +61,29 @@
 
 #elif defined(ARDUINO_XIAO_ESP32S3)
 // Seeed Studio XIAO ESP32-S3
-#define TFT_MISO      D9
 #define TFT_MOSI      D10
+#define TFT_MISO      D9
 #define TFT_SCLK      D8
-#define TFT_CS        (-1)  // dummy
-#define TFT_RST       D0    // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC        D1
+#define TFT_CS        D2    // (-1)  // dummy
+#define TFT_RST       D1    // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC        D0
 #define SPI_MODE      SPI_MODE3 // SPI_MODE3
 
 #else
 #warning "must specify board type"
 #endif
 
-#if 1
+#if 0
 // 1.3 inch ... TFT_RST must be D9
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   240
-#define DEVICE_ORIGIN 2
+#define DEVICE_ORIGIN   2
 #define INVERT_DISPLAY  true
 #else
 // 2.4 inch ... "RESET" on breakout board can be connected to "RESET" or +3.3V on UNO R4 instead of D9.
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   320
-#define DEVICE_ORIGIN 0
+#define DEVICE_ORIGIN   0
 #define INVERT_DISPLAY  false
 #endif
 
