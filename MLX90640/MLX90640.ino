@@ -24,9 +24,9 @@
 #define TFT_MISO      D9
 #define TFT_MOSI      D10
 #define TFT_SCLK      D8
+#define TFT_CS        (-1)  // dummy
+#define TFT_RST       D0    // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC        D1
-#define TFT_CS        (-1) // dummy
-#define TFT_RST       (-1) // Or set to -1 and connect to Arduino RESET pin
 #define SPI_MODE      SPI_MODE3 // SPI_MODE3
 
 #else
@@ -101,8 +101,8 @@ void TFT_Printf(uint8_t x, uint8_t y, const char* fmt, ...) {
 
 void setup() {
   Serial.begin(115200);
+#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
   while (!Serial);
-#ifdef  ARDUINO_UNOR4_WIFI
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
 #endif
 

@@ -64,9 +64,9 @@
 #define TFT_MISO      D9
 #define TFT_MOSI      D10
 #define TFT_SCLK      D8
+#define TFT_CS        (-1)  // dummy
+#define TFT_RST       D0    // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC        D1
-#define TFT_CS        (-1) // dummy
-#define TFT_RST       (-1) // Or set to -1 and connect to Arduino RESET pin
 #define SPI_MODE      SPI_MODE3 // SPI_MODE3
 
 #else
@@ -106,10 +106,10 @@ float p = 3.1415926;
 
 void setup(void) {
   Serial.begin(115200);
-//while (!Serial);
-//#ifdef  ARDUINO_UNOR4_WIFI
+#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
+  while (!Serial);
   delay(1000); // It requires at least 600 ms to complete Serial initialization.
-//#endif
+#endif
   Serial.print(F("Hello! ST77xx TFT Test..."));
 
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
