@@ -21,12 +21,12 @@
 
 #elif defined(ARDUINO_XIAO_ESP32S3)
 // Seeed Studio XIAO ESP32-S3
-#define TFT_MISO      D9
 #define TFT_MOSI      D10
+#define TFT_MISO      D9
 #define TFT_SCLK      D8
 #define TFT_CS        D2    // (-1)  // dummy
-#define TFT_RST       D0    // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC        D1
+#define TFT_RST       D1    // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC        D0
 #define SPI_MODE      SPI_MODE3 // SPI_MODE3
 
 #else
