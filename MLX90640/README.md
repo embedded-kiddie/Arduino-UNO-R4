@@ -1,4 +1,4 @@
-# MLX90640 Thermography Camera by Arduino UNO R4
+# MLX90640 with Arduino UNO R4
 
 ## Wiring
 
