@@ -17,21 +17,7 @@
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
-
-// For the Adafruit shield, these are the default.
-//#define TFT_DC 9
-//#define TFT_CS 10
-/* SPI pin definition for Arduino UNO R3 and R4
-  | ST7789 | PIN  |  R3  |   R4   |     Description      |
-  |--------|------|------|--------|----------------------|
-  | SCL    |  D13 | SCK  | RSPCKA | Serial clock         |
-  | SDA    | ~D11 | COPI | COPIA  | Serial data input    |
-  | RES    | ~D9  | PB1  | P303   | Reset signal         |
-  | DC     |  D8  | PB0  | P304   | Display data/command |
-*/
-  #define TFT_CS        10
-  #define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
-  #define TFT_DC         8
+#include "spi_assign.h"
 
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);

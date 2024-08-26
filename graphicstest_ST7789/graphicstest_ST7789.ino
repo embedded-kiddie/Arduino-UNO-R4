@@ -32,49 +32,7 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <SPI.h>
-
-#if defined(ARDUINO_FEATHER_ESP32) // Feather Huzzah32
-  #define TFT_CS         14
-  #define TFT_RST        15
-  #define TFT_DC         32
-
-#elif defined(ESP8266)
-  #define TFT_CS         4
-  #define TFT_RST        16
-  #define TFT_DC         5
-
-#elif defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
-  // For the breakout board, you can use any 2 or 3 pins.
-  // These pins will also work for the 1.8" TFT shield.
-/* SPI pin definition for Arduino UNO R3 and R4
-  | ST7789 | PIN  |  R3  |   R4   |     Description      |
-  |--------|------|------|--------|----------------------|
-  | SCL    |  D13 | SCK  | RSPCKA | Serial clock         |
-  | SDA    | ~D11 | COPI | COPIA  | Serial data input    |
-  | RES    | ~D9  | PB1  | P303   | Reset signal         |
-  | DC     |  D8  | PB0  | P304   | Display data/command |
-*/
-//#define TFT_SCLK      13
-//#define TFT_MISO      12
-//#define TFT_MOSI      11
-#define TFT_CS        10
-#define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC         8
-#define SPI_MODE      SPI_MODE3 // SPI_MODE2 or SPI_MODE3
-
-#elif defined(ARDUINO_XIAO_ESP32S3)
-// Seeed Studio XIAO ESP32-S3
-#define TFT_MOSI      D10
-#define TFT_MISO      D9
-#define TFT_SCLK      D8
-#define TFT_CS        D2    // (-1)  // dummy
-#define TFT_RST       D1    // Or set to -1 and connect to Arduino RESET pin
-#define TFT_DC        D0
-#define SPI_MODE      SPI_MODE3 // SPI_MODE3
-
-#else
-#warning "must specify board type"
-#endif
+#include "spi_assign.h"
 
 #if 0
 // 1.3 inch ... TFT_RST must be D9
