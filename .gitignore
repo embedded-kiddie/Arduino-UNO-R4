@@ -7,8 +7,6 @@
 !LICENSE
 
 
-!/MLX90640
-!/ST7789_Flash_Jpg
 !/background_music
 !/blink_without_delay
 !/breakout
@@ -21,7 +19,9 @@
 !/non_preemptive_multitasking
 !/serial_input_test
 !/serial_speed_test
-
+!/ST7789_Flash_Jpg
+!/TouchTest
+!/MLX90640
 
 # VSCODE
 */.theia

@@ -54,6 +54,9 @@
   | RES    | ~D9  | PB1  | P303   | Reset signal         |
   | DC     |  D8  | PB0  | P304   | Display data/command |
 */
+//#define TFT_SCLK      13
+//#define TFT_MISO      12
+//#define TFT_MOSI      11
 #define TFT_CS        10
 #define TFT_RST        9 // Or set to -1 and connect to Arduino RESET pin
 #define TFT_DC         8
