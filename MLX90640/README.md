@@ -2,6 +2,8 @@
 
 ## Wiring
 
+[Wiring at cirkitdesigner.com](https://app.cirkitdesigner.com/project/2cb358c0-bc87-438d-aa5b-aa6f1288262a "Cirkit Designer IDE")
+
 ![MLX90640 on bread board](MLX90640-wiring.jpg)
 
 ## Demo
