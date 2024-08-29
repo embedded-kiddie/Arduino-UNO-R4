@@ -130,14 +130,13 @@ void setup() {
 
 #if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
 
+  Wire.setClock(400000); // I2C Clock 400 KHz (Sm)
   mlx.setRefreshRate(MLX90640_4_HZ); // 4 FPS
-  Wire.setClock(400000); // 400 KHz
 
 #elif defined(ARDUINO_XIAO_ESP32S3)
 
-//mlx.setRefreshRate(MLX90640_16_HZ); // unstable
-  mlx.setRefreshRate(MLX90640_8_HZ);  // 8 FPS
-  Wire.setClock(400000); // 400 KHz
+  Wire.setClock(1000000); // I2C Clock 1 MHz (Fm+)
+  mlx.setRefreshRate(MLX90640_16_HZ);  // 16 FPS
 
 #endif
 }
