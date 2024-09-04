@@ -29,11 +29,11 @@
 
 #define DEVICE_WIDTH  240
 #define DEVICE_HEIGHT 240
-#define DEVICE_ORIGIN 2
+#define DEVICE_ORIGIN 3
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define PIN_RACKET  A0  // Potentiometer or Joystick
+#define PIN_RACKET  -1  // A0  // Potentiometer (-1 means always demo mode)
 #define PIN_SOUND   7   // Buzzer
 
 // Pseudo screen scaling
@@ -360,8 +360,12 @@ void RacketInit() {
 void RacketMove(void) {
   int16_t x, before = racket.x;
 
+#if PIN_RACKET != -1
   x = map(analogRead(PIN_RACKET), 0, 1023, -5, SCREEN_WIDTH - RACKET_WIDTH + 5);
   x = constrain(x, WALL_LEFT, WALL_RIGHT - RACKET_WIDTH + 1);
+#else
+  x = racket.x_prev;
+#endif
 
   if (play.demo == false) {
     racket.x = x;
