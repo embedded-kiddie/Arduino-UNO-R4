@@ -34,7 +34,7 @@
 #include <SPI.h>
 #include "spi_assign.h"
 
-#if 1
+#if 0
 // 1.3 inch ... TFT_RST must be D9
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   240
