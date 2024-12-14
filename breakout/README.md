@@ -1,5 +1,9 @@
 # Breakout game
 
+This program is for learning [Blink Without Delay](https://docs.arduino.cc/built-in-examples/digital/BlinkWithoutDelay/) and [Finite State Machine](https://en.wikipedia.org/wiki/Finite-state_machine "Finite-state machine - Wikipedia").
+
+## Demo
+
 [![Breakout game](breakout.jpg)](https://youtu.be/K5Ht-r3FQZE "Arduino UNO R4 &amp; 240x240 LCD Breakeout Game - YouTube")
 
 ## Dependencies
