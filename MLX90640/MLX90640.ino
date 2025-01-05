@@ -6,7 +6,7 @@
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#if 0
+#if 1
 // 1.3 inch ... TFT_RST must be D9
 #define DEVICE_WIDTH    240
 #define DEVICE_HEIGHT   240
@@ -130,25 +130,27 @@ void setup() {
 
 #if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
 
-  mlx.setRefreshRate(MLX90640_4_HZ); // 4 FPS
-  Wire.setClock(400000); // I2C Clock 400 KHz (Sm)
+  Wire.setClock(400000); // I2C frequency 400 KHz (Sm)
+  mlx.setRefreshRate(MLX90640_4_HZ); // 2 FPS
 
 #elif defined(ARDUINO_XIAO_ESP32S3)
 
-  mlx.setRefreshRate(MLX90640_16_HZ);  // 16 FPS
-  Wire.setClock(1000000); // I2C Clock 1 MHz (Fm+)
+  Wire.setClock(1000000); // I2C frequency 1 MHz (Fm+)
+  mlx.setRefreshRate(MLX90640_16_HZ);  // 8 FPS
 
 #endif
 }
 
 void loop() {
-  uint32_t timestamp = millis();
+  uint32_t start = millis();
   if (mlx.getFrame(frame) != 0) {
     TFT_Printf(DEVICE_WIDTH / 2 - FONT_WIDTH * 3, DEVICE_WIDTH / 2 - FONT_HEIGHT * 3, "Failed");
     Serial.println("Failed");
     delay(1000); // false = no new frame capture
     return;
   }
+
+  uint32_t input = millis();
 
   int colorTemp;
   for (uint8_t h = 0; h < 24; h++) {
@@ -170,10 +172,14 @@ void loop() {
   // Ambient temperature
   float v = mlx.getTa(false);
   if (v > 0) {
-    TFT_Printf(FONT_WIDTH * 12, PIXEL_SIZE * 24 + FONT_HEIGHT * 3, "%4.1f'C", v);  // false = no new frame capture
+    TFT_Printf((DEVICE_WIDTH-1) - FONT_WIDTH * 12, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%4.1f'C", v);  // false = no new frame capture
   }
 
-  // FPS
-  v = 2000.0f / (float)(millis() - timestamp); // 2 frames per display
-  TFT_Printf(FONT_WIDTH, PIXEL_SIZE * 24 + FONT_HEIGHT * 3, "%4.2f FPS", v);
+  // Frame rate [FPS]
+  uint32_t output = millis();
+  v = 1000.0f / (float)(output - start); // 2 frames per display
+  TFT_Printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%3.1fFPS", v);
+
+  // Process time [msec]
+  TFT_Printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 2, "IN:%3d  OUT:%3d", input - start, output - input);
 }
