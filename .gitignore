@@ -17,8 +17,8 @@
 !/graphicstest_ST7789
 !/line_trace_lap_timer
 !/non_preemptive_multitasking
-!/serial_input_test
-!/serial_speed_test
+!/test_serial_input
+!/test_serial_speed
 !/ST7789_Flash_Jpg
 !/TouchTest
 !/MLX90640
