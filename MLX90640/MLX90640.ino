@@ -1,3 +1,6 @@
+/*================================================================================
+ * MLX90640 thermograpy camera for UNO R4
+ *================================================================================*/
 #include <Arduino.h>
 #include <SPI.h>
 #include "spi_assign.h"
@@ -23,6 +26,7 @@
 #define FONT_WIDTH    12 // [px] (Device coordinate system)
 #define FONT_HEIGHT   16 // [px] (Device coordinate system)
 
+#if   0
 /*---------------------------------------------------
  * Adafruit-GFX-Library
  * https://github.com/adafruit/Adafruit-GFX-Library
@@ -41,7 +45,34 @@ void gfx_setup(void) {
   GFX_EXEC(setTextSize(2));
   GFX_EXEC(fillScreen(0));
 }
+#else
+/*---------------------------------------------------
+ * Arduino GFX Library
+ * https://github.com/moononournation/Arduino_GFX
+ *---------------------------------------------------*/
+#include <Arduino_GFX_Library.h>
 
+Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC /* DC */, TFT_CS /* CS */, &SPI /* SPIClass */, true /* is_shared_interface */);
+Arduino_GFX *gfx = new Arduino_ST7789(bus, TFT_RST, 0 /* rotation */);
+#define GFX_EXEC(x) gfx->x
+
+void gfx_setup(void) {
+  // Init Display - specify data bus speed and spi mode
+  if (!GFX_EXEC(begin(SPI_FREQUENCY))) {
+    Serial.println("gfx->begin() failed!");
+  }
+
+  GFX_EXEC(invertDisplay(INVERT_DISPLAY));
+  GFX_EXEC(setTextColor(WHITE, BLACK));
+  GFX_EXEC(setTextSize(2));
+  GFX_EXEC(fillScreen(0));
+}
+#endif
+
+/*---------------------------------------------------
+ * MLX90640 library functions
+ * https://github.com/adafruit/Adafruit_MLX90640
+ *---------------------------------------------------*/
 #include <Adafruit_MLX90640.h>
 Adafruit_MLX90640 mlx;
 float frame[32*24]; // buffer for full frame of temperatures
@@ -54,7 +85,7 @@ float frame[32*24]; // buffer for full frame of temperatures
 
 //the colors we will be using
 const uint16_t camColors[] = {
-#if 0
+#if 1
 /* Railbow */
 0x480F,0x400F,0x400F,0x400F,0x4010,0x3810,0x3810,0x3810,0x3810,0x3010,0x3010,0x3010,0x2810,0x2810,0x2810,0x2810,
 0x2010,0x2010,0x2010,0x1810,0x1810,0x1811,0x1811,0x1011,0x1011,0x1011,0x0811,0x0811,0x0811,0x0011,0x0011,0x0011,
@@ -93,7 +124,7 @@ const uint16_t camColors[] = {
 #endif
 };
 
-void TFT_Printf(uint16_t x, uint16_t y, const char* fmt, ...) {
+void gfx_printf(uint16_t x, uint16_t y, const char* fmt, ...) {
   int len = 0;
   char buf[16];
 
@@ -102,9 +133,8 @@ void TFT_Printf(uint16_t x, uint16_t y, const char* fmt, ...) {
   len = vsnprintf(buf, sizeof(buf), fmt, arg_ptr);
   va_end(arg_ptr);
 
-//tft.fillRect(x, y, len * FONT_WIDTH, FONT_HEIGHT, BLACK);
-  tft.setCursor(x, y);
-  tft.print(buf);
+  GFX_EXEC(setCursor(x, y));
+  GFX_EXEC(print(buf));
 }
 
 void setup() {
@@ -116,10 +146,6 @@ void setup() {
 
   // Initialize ST7789
   gfx_setup();
-
-#if defined (ARDUINO_XIAO_ESP32S3)
-  GFX_EXEC(setSPISpeed(80000000));
-#endif
  
   // Draw color bar
   const int n = sizeof(camColors) / sizeof(camColors[0]);
@@ -127,13 +153,13 @@ void setup() {
   int       y = PIXEL_SIZE * 24 + 3;
   for (int i = 0; i < n; i++) {
     int x = map(i, 0, n, 0, w);
-    tft.fillRect(x, y, 1, FONT_HEIGHT - 4, camColors[i]);
+    GFX_EXEC(fillRect(x, y, 1, FONT_HEIGHT - 4, camColors[i]));
   }
 
   y += FONT_HEIGHT;
-  TFT_Printf(FONT_WIDTH *  0, y, "%d", MINTEMP);
-  TFT_Printf(FONT_WIDTH *  8, y, "%3.1f", (float)(MINTEMP + MAXTEMP) / 2.0f);
-  TFT_Printf(FONT_WIDTH * 17, y, "%d", MAXTEMP);
+  gfx_printf(FONT_WIDTH *  0, y, "%d", MINTEMP);
+  gfx_printf(FONT_WIDTH *  8, y, "%3.1f", (float)(MINTEMP + MAXTEMP) / 2.0f);
+  gfx_printf(FONT_WIDTH * 17, y, "%d", MAXTEMP);
 
   delay(100);
 
@@ -152,15 +178,15 @@ void setup() {
   mlx.setMode(MLX90640_CHESS);
   mlx.setResolution(MLX90640_ADC_18BIT);
 
-#if defined(ARDUINO_UNOR4_WIFI) || defined(ARDUINO_UNOR4_MINIMA)
+#if   defined(_ADAFRUIT_GFX_H)
 
   Wire.setClock(400000); // I2C frequency 400 KHz (Sm)
   mlx.setRefreshRate(MLX90640_4_HZ); // 2 FPS (2 frames per display)
 
-#elif defined(ARDUINO_XIAO_ESP32S3)
+#else // defined(_ARDUINO_GFX_H_)
 
-  Wire.setClock(1000000); // I2C frequency 1 MHz (Fm+)
-  mlx.setRefreshRate(MLX90640_16_HZ);  // 8 FPS (2 frames per display)
+  Wire.setClock(400000); // I2C frequency 400 KHz (Sm)
+  mlx.setRefreshRate(MLX90640_8_HZ); // 4 FPS (2 frames per display)
 
 #endif
 }
@@ -168,7 +194,7 @@ void setup() {
 void loop() {
   uint32_t start = millis();
   if (mlx.getFrame(frame) != 0) {
-    TFT_Printf(DEVICE_WIDTH / 2 - FONT_WIDTH * 3, DEVICE_WIDTH / 2 - FONT_HEIGHT * 3, "Failed");
+    gfx_printf(DEVICE_WIDTH / 2 - FONT_WIDTH * 3, DEVICE_WIDTH / 2 - FONT_HEIGHT * 3, "Failed");
     Serial.println("Failed");
     delay(1000); // false = no new frame capture
     return;
@@ -194,14 +220,14 @@ void loop() {
   // Ambient temperature
   float v = mlx.getTa(false);
   if (v > 0) {
-    TFT_Printf((DEVICE_WIDTH-1) - FONT_WIDTH * 12, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%4.1f'C", v);  // false = no new frame capture
+    gfx_printf((DEVICE_WIDTH-1) - FONT_WIDTH * 12, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%4.1f'C", v);  // false = no new frame capture
   }
 
   // Display frame rate [FPS]
   uint32_t output = millis();
   v = 1000.0f / (float)(output - start); // 2 frames per display
-  TFT_Printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%3.1fFPS", v);
+  gfx_printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 1, "%3.1fFPS", v);
 
   // Process time [msec]
-  TFT_Printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 2, "IN:%3d  OUT:%3d", input - start, output - input);
+  gfx_printf(0, (DEVICE_HEIGHT-1) - FONT_HEIGHT * 2, "IN:%3d  OUT:%3d", input - start, output - input);
 }
