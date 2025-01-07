@@ -140,8 +140,9 @@ void setup() {
   Serial.println("Adafruit MLX90640 Camera");
   if (! mlx.begin(MLX90640_I2CADDR_DEFAULT, &Wire)) {
     Serial.println("MLX90640 not found!");
+  } else {
+    Serial.println("Found Adafruit MLX90640");
   }
-  Serial.println("Found Adafruit MLX90640");
 
   Serial.print("Serial number: ");
   Serial.print(mlx.serialNumber[0], HEX);
