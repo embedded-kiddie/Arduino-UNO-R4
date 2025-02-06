@@ -1,4 +1,4 @@
-# MLX90640 with Arduino UNO R4
+# MLX90640 for Arduino UNO R4
 
 ## Wiring
 
